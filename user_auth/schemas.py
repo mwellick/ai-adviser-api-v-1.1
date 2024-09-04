@@ -1,6 +1,6 @@
 import string
 from pydantic import BaseModel, EmailStr, Field, field_validator
-
+from fastapi import Form
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -19,3 +19,8 @@ class UserCreate(BaseModel):
             if value[i] not in string.ascii_letters:
                 raise ValueError("Username must contain only ASCII letters")
         return value
+
+
+class UserLogin(BaseModel):
+    email: str = Form()
+    password: str = Form()
