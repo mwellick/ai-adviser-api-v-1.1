@@ -1,17 +1,20 @@
+from datetime import timedelta
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette import status
-
 from database.models import User
-from .schemas import UserCreate, UserLogin
+from .schemas import UserCreate
+from .manager import create_access_token
 from database.engine import SessionLocal
+from fastapi.security import OAuth2PasswordRequestForm,OAuth2PasswordBearer
 
 router = APIRouter()
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+o2auth_bearer = OAuth2PasswordBearer(tokenUrl="token")
 
 
 async def get_db():
@@ -32,7 +35,7 @@ async def authenticate_user(email: str, password: str, db):
 
     if not user or not bcrypt_context.verify(password, user.hashed_password):
         return False
-    return True
+    return user
 
 
 @router.post("/user/register", status_code=status.HTTP_201_CREATED)
@@ -53,9 +56,13 @@ async def register_user(
 
 @router.post("/user/login", status_code=status.HTTP_200_OK)
 async def login_user(
-        form_data: Annotated[UserLogin, Depends()],
+        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         db: db_dependency):
-    user = await authenticate_user(form_data.email, form_data.password, db)
+    user = await authenticate_user(form_data.username, form_data.password, db)
     if not user:
         return "Your email address of password is incorrect"
-    return "Authentication success"
+    token = create_access_token(user.email, user.id, timedelta(hours=1))
+    return {"access_token": token, "type": "bearer"}
+
+
+
