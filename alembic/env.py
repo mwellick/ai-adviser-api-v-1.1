@@ -11,6 +11,7 @@ from alembic import context
 from dotenv import load_dotenv
 
 from database.models import Base
+
 load_dotenv()
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -60,7 +61,11 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        render_as_batch=True
+    )
 
     with context.begin_transaction():
         context.run_migrations()
