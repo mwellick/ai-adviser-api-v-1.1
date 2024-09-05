@@ -31,7 +31,7 @@ class Chat(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     theme_id: Mapped[int] = mapped_column(ForeignKey("themes.id"), nullable=False)
     theme: Mapped["Theme"] = relationship("Theme", back_populates="chats")
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     user: Mapped["User"] = relationship("User", back_populates="chats")
     messages: Mapped[list["Message"]] = relationship("Message", back_populates="chat")
     is_saved: Mapped[bool] = mapped_column(default=False)
