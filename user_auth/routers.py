@@ -9,8 +9,8 @@ from .manager import (
     create_access_token,
     bcrypt_context,
     authenticate_user,
-    # get_user_token,
-    save_blacklist_token, get_user_token
+    save_blacklist_token,
+    get_user_token
 )
 from dependencies import db_dependency, user_dependency
 
@@ -51,7 +51,7 @@ async def get_actual_user(user: user_dependency):
     return UserRead(**user)
 
 
-@router.get("/user/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.get("/user/logout", status_code=status.HTTP_200_OK)
 async def logout_user(
         token: Annotated[str, Depends(get_user_token)],
         user: user_dependency,
