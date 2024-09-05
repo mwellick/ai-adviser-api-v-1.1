@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Path
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from starlette import status
 from dependencies import db_dependency, user_dependency
 from database.models import Chat, Theme
@@ -29,7 +29,7 @@ async def create_chat(db: db_dependency, chat: ChatCreate):
 
 @chats_router.get("/", response_model=list[ChatRead], status_code=status.HTTP_200_OK)
 async def get_all_chats(user: user_dependency, db: db_dependency):
-    query = select(Chat).where(Chat.user_id == user.get("id"))
+    query = select(Chat).where(Chat.user_id == user.get("id")).order_by(desc(Chat.created_at))
     result = await db.execute(query)
     chats_list = result.scalars().all()
     if not chats_list:
