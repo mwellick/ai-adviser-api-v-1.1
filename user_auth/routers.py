@@ -8,7 +8,9 @@ from .schemas import UserCreate, UserRead
 from .manager import (
     create_access_token,
     bcrypt_context,
-    authenticate_user
+    authenticate_user,
+    # get_user_token,
+    save_blacklist_token, get_user_token
 )
 from dependencies import db_dependency, user_dependency
 
@@ -40,10 +42,20 @@ async def login_user(
     user = await authenticate_user(form_data.username, form_data.password, db)
     if not user:
         return "Your email address of password is incorrect"
-    token = create_access_token(user.email, user.id, timedelta(hours=1))
+    token = create_access_token(user.email, user.id, timedelta(days=1))
     return {"access_token": token, "type": "bearer"}
 
 
 @router.get("/user/me")
 async def get_actual_user(user: user_dependency):
     return UserRead(**user)
+
+
+@router.get("/user/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout_user(
+        token: Annotated[str, Depends(get_user_token)],
+        user: user_dependency,
+        db: db_dependency
+):
+    await save_blacklist_token(token=token, current_user=user, db=db)
+    return {"info": "Successfully logged out"}
