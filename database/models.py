@@ -43,3 +43,11 @@ class Message(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     chat_id: Mapped[int] = mapped_column(ForeignKey("chats.id"), nullable=False)
     chat: Mapped["Chat"] = relationship("Chat", back_populates="messages")
+
+
+class BlackListToken(Base):
+    __tablename__ = "unactive_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    token: Mapped[str] = mapped_column(unique=True)
+    email: Mapped[str] = mapped_column()
