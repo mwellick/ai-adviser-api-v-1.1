@@ -34,6 +34,7 @@ class Chat(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     user: Mapped["User"] = relationship("User", back_populates="chats")
     messages: Mapped[list["Message"]] = relationship("Message", back_populates="chat")
+    is_saved: Mapped[bool] = mapped_column(default=False)
 
 
 class Message(Base):
