@@ -1,14 +1,16 @@
 import os
 import jwt
-
+from fastapi import Depends, HTTPException
 from sqlalchemy import select
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from datetime import timedelta, datetime
 from jose import jwt
-from database.models import User
+from starlette import status
 
+from database.models import User, BlackListToken
 from dotenv import load_dotenv
+from dependencies import db_dependency, user_dependency
 
 load_dotenv()
 
@@ -32,5 +34,31 @@ async def authenticate_user(email: str, password: str, db):
     user = result.scalars().first()
 
     if not user or not bcrypt_context.verify(password, user.hashed_password):
-        return False
+        return None
     return user
+
+
+def get_user_token(token: str = Depends(o2auth_bearer)):
+    return token
+
+
+async def save_blacklist_token(
+        db: db_dependency,
+        current_user: user_dependency,
+        token: str = Depends(o2auth_bearer),
+
+):
+    query = select(BlackListToken).where(BlackListToken.token == token)
+    result = await db.execute(query)
+    blacklist_token = result.scalars().first()
+    if blacklist_token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Token is already blacklisted"
+                            )
+
+    blacklist_token = BlackListToken(
+        token=token,
+        email=current_user.get("email")
+    )
+    db.add(blacklist_token)
+    await db.commit()
