@@ -1,10 +1,7 @@
 from fastapi import FastAPI
+from user_auth.routers import router
 
 app = FastAPI(
     title="AI Adviser"
 )
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+app.include_router(router)

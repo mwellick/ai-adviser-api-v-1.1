@@ -1,6 +1,5 @@
 import string
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from fastapi import Form
 
 
 class UserCreate(BaseModel):
@@ -22,4 +21,8 @@ class UserCreate(BaseModel):
         return value
 
 
-
+class UserRead(BaseModel):
+    id: int
+    email: EmailStr
+    username: str
+    is_active: bool

@@ -1,51 +1,23 @@
-import os
 from datetime import timedelta
 from typing import Annotated
-
-import jwt
-from fastapi import APIRouter, Depends, HTTPException
-from passlib.context import CryptContext
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 from database.models import User
-from .schemas import UserCreate
-from .manager import create_access_token
-from database.engine import SessionLocal
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from jose import JWTError
+from .schemas import UserCreate, UserRead
+from .manager import (
+    create_access_token,
+    bcrypt_context,
+    authenticate_user
+)
+from dependencies import db_dependency, user_dependency
 
 router = APIRouter(
-    prefix="/auth",
     tags=["auth"]
 )
 
-bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-o2auth_bearer = OAuth2PasswordBearer(tokenUrl="token")
 
-
-async def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        await db.close()
-
-
-db_dependency = Annotated[Session, Depends(get_db)]
-
-
-async def authenticate_user(email: str, password: str, db):
-    query = select(User).where(User.email == email)
-    result = await db.execute(query)
-    user = result.scalars().first()
-
-    if not user or not bcrypt_context.verify(password, user.hashed_password):
-        return False
-    return user
-
-
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/auth/user/", status_code=status.HTTP_201_CREATED)
 async def register_user(
         db: db_dependency,
         create_user_request: UserCreate
@@ -61,7 +33,7 @@ async def register_user(
     return create_user_model
 
 
-@router.post("/token", status_code=status.HTTP_200_OK)
+@router.post("/user/token", status_code=status.HTTP_200_OK)
 async def login_user(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         db: db_dependency):
@@ -72,19 +44,6 @@ async def login_user(
     return {"access_token": token, "type": "bearer"}
 
 
-async def get_current_user(token: Annotated[str, Depends(o2auth_bearer)]):
-    try:
-        payload = jwt.decode(
-            token,
-            os.environ.get("JWT_SECRET_KEY"),
-            algorithms=[os.environ.get("JWT_ALGORITHM")]
-        )
-        email: str = payload.get("sub")
-        user_id: int = payload.get("id")
-        if email is None or user_id is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                detail="Could not validate user.")
-        return {"email": email, "id": user_id}
-    except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Could not validate user.")
+@router.get("/user/me")
+async def get_actual_user(user: user_dependency):
+    return UserRead(**user)
