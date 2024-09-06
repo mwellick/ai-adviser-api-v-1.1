@@ -40,6 +40,23 @@ async def get_all_chats(user: user_dependency, db: db_dependency):
     return chats_list
 
 
+@chats_router.delete("/delete/all_chats", status_code=status.HTTP_200_OK)
+async def delete_all_chats(user: user_dependency, db: db_dependency):
+    query = select(Chat).where(Chat.user_id == user.get("id"))
+    result = await db.execute(query)
+    delete_all = result.scalars().all()
+    if not delete_all:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Your chat history is clear"
+        )
+    for chat in delete_all:
+        await db.delete(chat)
+
+    await db.commit()
+    return {"detail": "All chats were successfully deleted"}
+
+
 @chats_router.delete("/delete/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_chat(user: user_dependency, db: db_dependency, chat_id: int = Path(gt=0)):
     query = select(Chat).where(Chat.user_id == user.get("id")).where(Chat.id == chat_id)
