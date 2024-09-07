@@ -14,3 +14,6 @@ class ChatRead(BaseModel):
     theme_id: int
     user_id: Optional[int] = None  # user or guest
     is_saved: bool
+
+    class Config:
+        from_attributes = True

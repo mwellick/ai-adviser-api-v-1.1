@@ -7,6 +7,8 @@ class UserCreate(BaseModel):
     username: str = Field(min_length=5, max_length=20)
     password: str = Field(min_length=8)
 
+
+
     @field_validator("password")
     def validate_password_startswith_upper(cls, value: str) -> str:
         if not value[0].isupper():
@@ -26,3 +28,6 @@ class UserRead(BaseModel):
     email: EmailStr
     username: str
     is_active: bool
+
+    class Config:
+        from_attributes = True
