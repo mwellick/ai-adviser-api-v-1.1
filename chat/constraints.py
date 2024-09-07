@@ -1,12 +1,15 @@
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import HTTPException
 from sqlalchemy import select, desc
 from starlette import status
 from dependencies import db_dependency, user_dependency
 from database.models import Chat, Theme
-from .schemas import ChatCreate, ChatRead
+from .schemas import ChatCreate
 
 
-async def validate_create_chat_with_available_theme(db: db_dependency, chat: ChatCreate):
+async def validate_create_chat_with_available_theme(
+        db: db_dependency,
+        chat: ChatCreate
+):
     query = select(Theme).where(Theme.id == chat.theme_id)
     result = await db.execute(query)
     theme_list = result.scalars().first()
@@ -17,7 +20,10 @@ async def validate_create_chat_with_available_theme(db: db_dependency, chat: Cha
         )
 
 
-async def check_chat_history(user: user_dependency, db: db_dependency):
+async def check_chat_history(
+        user: user_dependency,
+        db: db_dependency
+):
     query = select(Chat).where(
         Chat.user_id == user.get("id")
     ).order_by(desc(Chat.created_at))
@@ -45,7 +51,11 @@ async def check_saved_chat_history(user: user_dependency, db: db_dependency):
     return saved_chats
 
 
-async def check_existing_chat(user: user_dependency, db: db_dependency, chat_id: int):
+async def check_existing_chat(
+        user: user_dependency,
+        db: db_dependency,
+        chat_id: int
+):
     query = select(Chat).where(
         Chat.user_id == user.get("id")
     ).where(Chat.id == chat_id)
