@@ -35,7 +35,20 @@ async def get_all_chats(user: user_dependency, db: db_dependency):
     if not chats_list:
         raise HTTPException(
             status_code=status.HTTP_200_OK,
-            detail="Your chat history is clear"
+            detail="Your chats history is clear"
+        )
+    return chats_list
+
+
+@chats_router.get("/get_saved_chats", status_code=status.HTTP_200_OK)
+async def get_all_saved_chats(user: user_dependency, db: db_dependency):
+    query = select(Chat).where(Chat.user_id == user.get("id")).where(Chat.is_saved == True)
+    result = await db.execute(query)
+    chats_list = result.scalars().all()
+    if not chats_list:
+        raise HTTPException(
+            status_code=status.HTTP_200_OK,
+            detail="Your saved chats history is clear"
         )
     return chats_list
 
@@ -70,3 +83,23 @@ async def delete_chat(user: user_dependency, db: db_dependency, chat_id: int = P
     await db.delete(chat_to_delete)
     await db.commit()
     return None
+
+
+@chats_router.get("/{chat_id}/save_chat", status_code=status.HTTP_200_OK)
+async def save_unsafe_specific_chat(
+        user: user_dependency,
+        save: bool,
+        db: db_dependency,
+        chat_id: int = Path(gt=0),
+):
+    query = select(Chat).where(Chat.user_id == user.get("id")).where(Chat.id == chat_id)
+    result = await db.execute((query))
+    save_chat = result.scalars().first()
+    if not save_chat:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chat not found"
+        )
+    save_chat.is_saved = save
+    await db.commit()
+    return {"detail": f"Chat is successfully {'saved' if save else 'unsaved'}"}
