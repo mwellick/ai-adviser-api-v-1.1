@@ -11,9 +11,10 @@ from .constraints import (
 
 
 async def chat_create(db: db_dependency, chat: ChatCreate):
+
     await validate_create_chat_with_available_theme(db, chat)
 
-    if chat.user_id == 0 or chat.user_id is None:
+    if chat.user_id is None:
         create_chat = Chat(
             theme_id=chat.theme_id,
             user_id=None

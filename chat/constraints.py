@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy import select, desc
+from sqlalchemy.orm import joinedload
 from starlette import status
 from dependencies import db_dependency, user_dependency
 from database.models import Chat, Theme
@@ -24,7 +25,7 @@ async def check_chat_history(
         user: user_dependency,
         db: db_dependency
 ):
-    query = select(Chat).where(
+    query = select(Chat).options(joinedload(Chat.user)).where(
         Chat.user_id == user.get("id")
     ).order_by(desc(Chat.created_at))
 
@@ -38,7 +39,7 @@ async def check_chat_history(
 
 
 async def check_saved_chat_history(user: user_dependency, db: db_dependency):
-    query = select(Chat).where(
+    query = select(Chat).options(joinedload(Chat.user)).where(
         Chat.user_id == user.get("id")
     ).where(Chat.is_saved == True)
 
@@ -56,7 +57,7 @@ async def check_existing_chat(
         db: db_dependency,
         chat_id: int
 ):
-    query = select(Chat).where(
+    query = select(Chat).options(joinedload(Chat.user)).where(
         Chat.user_id == user.get("id")
     ).where(Chat.id == chat_id)
 
