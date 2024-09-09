@@ -33,7 +33,7 @@ class Chat(Base):
     theme: Mapped["Theme"] = relationship("Theme", back_populates="chats")
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     user: Mapped["User"] = relationship("User", back_populates="chats")
-    messages: Mapped[list["Message"]] = relationship("Message", back_populates="chat")
+    messages: Mapped[list["Message"]] = relationship("Message", back_populates="chat", cascade="all,delete-orphan")
     is_saved: Mapped[bool] = mapped_column(default=False)
 
 
