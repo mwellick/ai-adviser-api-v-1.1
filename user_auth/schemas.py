@@ -1,13 +1,16 @@
 import string
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import (
+    BaseModel,
+    EmailStr,
+    Field,
+    field_validator
+)
 
 
 class UserCreate(BaseModel):
     email: EmailStr
     username: str = Field(min_length=5, max_length=20)
     password: str = Field(min_length=8)
-
-
 
     @field_validator("password")
     def validate_password_startswith_upper(cls, value: str) -> str:
