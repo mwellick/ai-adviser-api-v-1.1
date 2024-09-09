@@ -61,7 +61,11 @@ async def delete_all_chat_history(user: user_dependency, db: db_dependency):
     return None
 
 
-async def delete_specific_chat(user: user_dependency, db: db_dependency, chat_id: int):
+async def delete_specific_chat(
+        user: user_dependency,
+        db: db_dependency,
+        chat_id: int
+):
     query = select(Chat).where(
         Chat.user_id == user.get("id")
     ).where(Chat.id == chat_id)
