@@ -1,4 +1,5 @@
 from sqlalchemy import select, desc
+from sqlalchemy.orm import joinedload
 from dependencies import db_dependency, user_dependency
 from database.models import Chat
 from .schemas import ChatCreate
@@ -22,7 +23,7 @@ async def chat_create(db: db_dependency, chat: ChatCreate):
 
 
 async def get_chats_list(user: user_dependency, db: db_dependency):
-    query = select(Chat).where(
+    query = select(Chat).options(joinedload(Chat.user)).where(
         Chat.user_id == user.get("id")
     ).order_by(desc(Chat.created_at))
 
@@ -35,7 +36,7 @@ async def get_chats_list(user: user_dependency, db: db_dependency):
 
 
 async def get_saved_chats_list(user: user_dependency, db: db_dependency):
-    query = select(Chat).where(
+    query = select(Chat).options(joinedload(Chat.user)).where(
         Chat.user_id == user.get("id")
     ).where(Chat.is_saved == True)
 
@@ -48,7 +49,8 @@ async def get_saved_chats_list(user: user_dependency, db: db_dependency):
 
 
 async def delete_all_chat_history(user: user_dependency, db: db_dependency):
-    query = select(Chat).where(Chat.user_id == user.get("id"))
+    query = select(Chat).options(joinedload(Chat.user)).where(
+        Chat.user_id == user.get("id"))
     result = await db.execute(query)
     delete_all = result.scalars().all()
 
@@ -66,7 +68,7 @@ async def delete_specific_chat(
         db: db_dependency,
         chat_id: int
 ):
-    query = select(Chat).where(
+    query = select(Chat).options(joinedload(Chat.user)).where(
         Chat.user_id == user.get("id")
     ).where(Chat.id == chat_id)
 
@@ -86,7 +88,7 @@ async def save_or_unsafe_specific_chat(
         db: db_dependency,
         chat_id: int
 ):
-    query = select(Chat).where(
+    query = select(Chat).options(joinedload(Chat.user)).where(
         Chat.user_id == user.get("id")
     ).where(Chat.id == chat_id)
 

@@ -11,11 +11,16 @@ messages_router = APIRouter(
 
 
 @messages_router.post("/{chat_id}/message", status_code=status.HTTP_201_CREATED)
-async def create_message(db: db_dependency, message: MessageCreate, chat_id: int = Path(gt=0)):
+async def create_message(
+        db: db_dependency,
+        message: MessageCreate,
+        chat_id: int = Path(gt=0)
+):
     message = Message(
         content=message.content,
         chat_id=chat_id
     )
+
     db.add(message)
     await db.commit()
     return message
