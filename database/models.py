@@ -44,6 +44,8 @@ class Message(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     chat_id: Mapped[int] = mapped_column(ForeignKey("chats.id"), nullable=False)
     chat: Mapped["Chat"] = relationship("Chat", back_populates="messages")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    is_ai_response: Mapped[bool] = mapped_column(default=False)
 
 
 class BlackListToken(Base):
