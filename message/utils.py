@@ -48,7 +48,7 @@ async def generate_response(db: db_dependency, chat_id: int):
                 if chunk.choices[0].delta.content is not None:
                     ai_res += chunk.choices[0].delta.content
     except Exception:
-        raise Exception("An unexpected error occurred during gererating a response for You")
+        raise Exception("An unexpected error occurred during generating a response for You")
 
     ai_message = Message(
         content=ai_res.strip(),
@@ -59,3 +59,32 @@ async def generate_response(db: db_dependency, chat_id: int):
     await db.commit()
 
     return ai_message
+
+
+async def generate_guest_response(messages: list):
+    user_message = messages[-1]["content"] if messages else ""
+
+    ai_response = await client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        temperature=0.7,
+        max_tokens=250,
+        frequency_penalty=0,
+        presence_penalty=0.5,
+        stream=True,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": user_message}
+        ]
+    )
+
+    ai_res = ""
+
+    try:
+        if ai_response:
+            async for chunk in ai_response:
+                if chunk.choices[0].delta.content is not None:
+                    ai_res += chunk.choices[0].delta.content
+    except Exception:
+        raise Exception("An unexpected error occurred during generating a response.")
+
+    return ai_res.strip()
