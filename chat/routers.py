@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Path
+import json
+import random
+from fastapi import APIRouter, Path, Response
 from starlette import status
 from dependencies import db_dependency, user_dependency
 from .crud import (
@@ -17,9 +19,24 @@ chats_router = APIRouter(
 
 
 @chats_router.post("/create", status_code=status.HTTP_201_CREATED)
-async def create_chat(db: db_dependency, chat: ChatCreate):
-    await chat_create(db, chat)
-    return None
+async def create_chat(db: db_dependency, response: Response, chat: ChatCreate):
+    chat_instance = await chat_create(db, chat)
+
+    if chat.user_id is None:
+        chat_id = random.randint(1, 100)
+        chat_data = {
+            "chat_id": chat_id,
+            "theme_id": chat_instance.theme_id
+        }
+        response.set_cookie(
+            key="guest_chat_data",
+            value=json.dumps(chat_data),
+            max_age=1800,
+            httponly=True,
+            secure=True
+        )
+
+    return chat_instance
 
 
 @chats_router.get("/", response_model=list[ChatRead], status_code=status.HTTP_200_OK)
