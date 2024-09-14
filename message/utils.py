@@ -1,6 +1,7 @@
 import os
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, AsyncStream
 from dotenv import load_dotenv
+from openai.types.chat import ChatCompletionChunk
 from sqlalchemy import select, desc
 from sqlalchemy.orm import joinedload
 from database.models import Message
@@ -40,18 +41,10 @@ async def generate_response(db: db_dependency, chat_id: int):
         ]
     )
 
-    ai_res = ""
-
-    try:
-        if ai_response:
-            async for chunk in ai_response:
-                if chunk.choices[0].delta.content is not None:
-                    ai_res += chunk.choices[0].delta.content
-    except Exception:
-        raise Exception("An unexpected error occurred during generating a response for You")
+    processed_response = await process_ai_response(ai_response)
 
     ai_message = Message(
-        content=ai_res.strip(),
+        content=processed_response,
         chat_id=chat_id,
         is_ai_response=True
     )
@@ -77,8 +70,11 @@ async def generate_guest_response(messages: list):
         ]
     )
 
-    ai_res = ""
+    return await process_ai_response(ai_response)
 
+
+async def process_ai_response(ai_response: AsyncStream[ChatCompletionChunk]):
+    ai_res = ""
     try:
         if ai_response:
             async for chunk in ai_response:
