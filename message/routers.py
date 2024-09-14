@@ -1,5 +1,3 @@
-import json
-
 from fastapi import APIRouter, Path, Request, Response
 
 from dependencies import db_dependency

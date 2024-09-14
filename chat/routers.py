@@ -1,8 +1,8 @@
-import json
 import random
 from fastapi import APIRouter, Path, Response
 from starlette import status
 from dependencies import db_dependency, user_dependency
+from message.utils import set_cookie
 from .crud import (
     chat_create,
     get_chats_list,
@@ -28,13 +28,7 @@ async def create_chat(db: db_dependency, response: Response, chat: ChatCreate):
             "chat_id": chat_id,
             "theme_id": chat_instance.theme_id
         }
-        response.set_cookie(
-            key="guest_chat_data",
-            value=json.dumps(chat_data),
-            max_age=1800,
-            httponly=True,
-            secure=True
-        )
+        await set_cookie(response, "guest_chat_data", chat_data, max_age=1800)
 
     return chat_instance
 

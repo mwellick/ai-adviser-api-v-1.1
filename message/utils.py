@@ -1,5 +1,7 @@
+import json
 import os
 from openai import AsyncOpenAI, AsyncStream
+from fastapi import Request, Response
 from dotenv import load_dotenv
 from openai.types.chat import ChatCompletionChunk
 from sqlalchemy import select, desc
@@ -24,11 +26,12 @@ async def generate_response(db: db_dependency, chat_id: int):
     chat = res.scalars().first()
 
     ai_response = await client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        temperature=0.7,
-        max_tokens=250,
-        frequency_penalty=0,
-        presence_penalty=0.5,
+        model="gpt-4-turbo",
+        temperature=1,
+        max_tokens=350,
+        frequency_penalty=0.7,
+        presence_penalty=1.0,
+        top_p=0.8,
         stream=True,
         messages=[
             {"role": "system",
@@ -58,11 +61,12 @@ async def generate_guest_response(messages: list):
     user_message = messages[-1]["content"] if messages else ""
 
     ai_response = await client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4",
         temperature=0.7,
         max_tokens=250,
-        frequency_penalty=0,
-        presence_penalty=0.5,
+        frequency_penalty=0.5,
+        presence_penalty=0.7,
+        top_p=0.3,
         stream=True,
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
@@ -84,3 +88,18 @@ async def process_ai_response(ai_response: AsyncStream[ChatCompletionChunk]):
         raise Exception("An unexpected error occurred during generating a response.")
 
     return ai_res.strip()
+
+
+async def get_cookie(request: Request, cookie_name: str):
+    cookie_data = request.cookies.get(cookie_name)
+    return json.loads(cookie_data) if cookie_data else []
+
+
+async def set_cookie(response: Response, cookie_name: str, data, max_age=0):
+    response.set_cookie(
+        key=cookie_name,
+        value=json.dumps(data),
+        max_age=max_age,
+        httponly=True,
+        secure=True
+    )
