@@ -3,3 +3,5 @@ __pycache__
 venv
 .env
 ai_adviser.db
+.pytest_cache
+tests/test_db.db

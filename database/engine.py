@@ -9,8 +9,6 @@ load_dotenv()
 
 SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL")
 
-Base = declarative_base()
-
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(
@@ -20,3 +18,5 @@ SessionLocal = sessionmaker(
     class_=AsyncSession,
     bind=engine
 )
+
+Base = declarative_base()

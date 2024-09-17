@@ -12,4 +12,3 @@ app.include_router(router)
 app.include_router(themes_router)
 app.include_router(chats_router)
 app.include_router(messages_router)
-
