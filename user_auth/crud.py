@@ -52,4 +52,4 @@ async def user_logout(
         db: db_dependency
 ):
     await save_blacklist_token(token=token, current_user=user, db=db)
-    return {"info": "Successfully logged out"}
+    return None

@@ -21,7 +21,7 @@ class UserCreate(BaseModel):
     @field_validator("username")
     def validate_username_with_ascii_letters(cls, value: str) -> str:
         for i in range(len(value)):
-            if value[i] not in string.ascii_letters:
+            if value[i] not in string.ascii_letters + string.digits:
                 raise ValueError("Username must contain only ASCII letters")
         return value
 

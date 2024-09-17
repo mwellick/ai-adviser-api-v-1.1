@@ -34,7 +34,7 @@ async def get_actual_user(user: user_dependency):
     return UserRead(**user)
 
 
-@router.get("/user/logout", status_code=status.HTTP_200_OK)
+@router.get("/user/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout_user(
         token: Annotated[str, Depends(get_user_token)],
         user: user_dependency,
