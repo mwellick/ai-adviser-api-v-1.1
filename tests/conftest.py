@@ -1,4 +1,6 @@
+import os
 import pytest
+from dotenv import load_dotenv
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -7,7 +9,9 @@ from database.models import Base
 from dependencies import get_db, get_current_user
 from main import app
 
-SQLALCHEMY_TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_db.db"
+load_dotenv()
+
+SQLALCHEMY_TEST_DATABASE_URL = os.environ.get("SQLALCHEMY_TEST_DATABASE_URL")
 
 engine_test = create_async_engine(
     url=SQLALCHEMY_TEST_DATABASE_URL,
