@@ -1,5 +1,22 @@
+import pytest
 from httpx import AsyncClient
 from starlette import status
+from .conftest import TestSessionLocal
+from user_auth.manager import bcrypt_context
+from database.models import User
+
+
+@pytest.fixture
+async def create_user():
+    user = User(
+        email="user@example.com",
+        username="testuser123",
+        hashed_password=bcrypt_context.hash("String123")
+    )
+    db = TestSessionLocal()
+    db.add(user)
+    await db.commit()
+    return user.id
 
 
 async def test_register_user(ac: AsyncClient):

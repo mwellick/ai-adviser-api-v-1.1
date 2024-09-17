@@ -1,5 +1,5 @@
 import random
-from fastapi import APIRouter, Path, Response
+from fastapi import APIRouter, Path, Response, Query
 from starlette import status
 from dependencies import db_dependency, user_dependency
 from message.utils import set_cookie
@@ -58,11 +58,11 @@ async def delete_chat(user: user_dependency, db: db_dependency, chat_id: int = P
 
 
 @chats_router.get("/{chat_id}/save_chat", status_code=status.HTTP_200_OK)
-async def save_unsafe_specific_chat(
+async def save_unsave_specific_chat(
         user: user_dependency,
-        save: bool,
         db: db_dependency,
         chat_id: int = Path(gt=0),
+        save: bool = Query(True)
 ):
     await save_or_unsafe_specific_chat(user, save, db, chat_id)
     return {"detail": f"Chat is successfully {'saved' if save else 'unsaved'}"}

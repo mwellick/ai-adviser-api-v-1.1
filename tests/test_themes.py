@@ -14,6 +14,7 @@ async def create_theme(ac: AsyncClient):
     db = TestSessionLocal()
     db.add(theme)
     await db.commit()
+    return theme.id
 
 
 async def test_themes_list(create_theme, ac: AsyncClient):
