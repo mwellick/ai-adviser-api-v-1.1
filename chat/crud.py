@@ -42,6 +42,14 @@ async def get_chats_list(user: user_dependency, db: db_dependency):
     return chats_list
 
 
+async def get_chat_by_id(user: user_dependency, db: db_dependency, chat_id: int):
+    query = select(Chat).options(joinedload(Chat.messages)).where(Chat.id == chat_id)
+    result = await db.execute(query)
+    await check_existing_chat(user, db, chat_id)
+    chat = result.scalars().first()
+    return chat
+
+
 async def get_saved_chats_list(user: user_dependency, db: db_dependency):
     query = select(Chat).options(joinedload(Chat.user)).where(
         Chat.user_id == user.get("id")

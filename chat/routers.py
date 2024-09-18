@@ -8,9 +8,9 @@ from .crud import (
     get_chats_list,
     get_saved_chats_list,
     delete_specific_chat,
-    delete_all_chat_history, save_or_unsafe_specific_chat
+    delete_all_chat_history, save_or_unsafe_specific_chat, get_chat_by_id
 )
-from .schemas import ChatCreate, ChatRead
+from .schemas import ChatCreate, ChatRead, RetrieveChat
 
 chats_router = APIRouter(
     prefix="/chats",
@@ -39,13 +39,30 @@ async def get_all_chats(user: user_dependency, db: db_dependency):
     return chats
 
 
-@chats_router.get("/get_saved_chats", status_code=status.HTTP_200_OK)
+@chats_router.get("/saved", status_code=status.HTTP_200_OK)
 async def get_all_saved_chats(user: user_dependency, db: db_dependency):
     saved_chats = await get_saved_chats_list(user, db)
     return saved_chats
 
 
-@chats_router.delete("/delete/all_chats", status_code=status.HTTP_200_OK)
+@chats_router.get("/{chat_id}", response_model=RetrieveChat, status_code=status.HTTP_200_OK)
+async def retrieve_chat(user: user_dependency, db: db_dependency, chat_id: int = Path(gt=0)):
+    chat = await get_chat_by_id(user, db, chat_id)
+    return chat
+
+
+@chats_router.get("/{chat_id}/save", status_code=status.HTTP_200_OK)
+async def save_unsave_specific_chat(
+        user: user_dependency,
+        db: db_dependency,
+        chat_id: int = Path(gt=0),
+        save: bool = Query(True)
+):
+    await save_or_unsafe_specific_chat(user, save, db, chat_id)
+    return {"detail": f"Chat is successfully {'saved' if save else 'unsaved'}"}
+
+
+@chats_router.delete("/delete/", status_code=status.HTTP_200_OK)
 async def delete_all_chats(user: user_dependency, db: db_dependency):
     await delete_all_chat_history(user, db)
     return {"detail": "All chats were successfully deleted"}
@@ -55,14 +72,3 @@ async def delete_all_chats(user: user_dependency, db: db_dependency):
 async def delete_chat(user: user_dependency, db: db_dependency, chat_id: int = Path(gt=0)):
     await delete_specific_chat(user, db, chat_id)
     return None
-
-
-@chats_router.get("/{chat_id}/save_chat", status_code=status.HTTP_200_OK)
-async def save_unsave_specific_chat(
-        user: user_dependency,
-        db: db_dependency,
-        chat_id: int = Path(gt=0),
-        save: bool = Query(True)
-):
-    await save_or_unsafe_specific_chat(user, save, db, chat_id)
-    return {"detail": f"Chat is successfully {'saved' if save else 'unsaved'}"}
