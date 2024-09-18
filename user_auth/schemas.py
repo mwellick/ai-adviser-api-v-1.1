@@ -22,7 +22,7 @@ class UserCreate(BaseModel):
     def validate_username_with_ascii_letters(cls, value: str) -> str:
         for i in range(len(value)):
             if value[i] not in string.ascii_letters + string.digits:
-                raise ValueError("Username must contain only ASCII letters")
+                raise ValueError("Username must contain only ASCII letters and digits")
         return value
 
 

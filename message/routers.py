@@ -17,7 +17,7 @@ messages_router = APIRouter(
 MAX_MESSAGES = 10
 
 
-@messages_router.post("guest_chat/{chat_id}/message")
+@messages_router.post("/guest_chat/{chat_id}/message")
 async def create_message_by_guest(
         request: Request,
         response: Response,
@@ -45,7 +45,7 @@ async def create_message_by_guest(
     return response_message
 
 
-@messages_router.post("user_chat/{chat_id}/message")
+@messages_router.post("/user_chat/{chat_id}/message")
 async def create_message(
         db: db_dependency,
         message: MessageCreate,
