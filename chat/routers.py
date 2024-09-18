@@ -51,7 +51,7 @@ async def retrieve_chat(user: user_dependency, db: db_dependency, chat_id: int =
     return chat
 
 
-@chats_router.get("/{chat_id}/save", status_code=status.HTTP_200_OK)
+@chats_router.get("/{chat_id}/", status_code=status.HTTP_200_OK)
 async def save_unsave_specific_chat(
         user: user_dependency,
         db: db_dependency,
