@@ -92,7 +92,12 @@ async def process_ai_response(ai_response: AsyncStream[ChatCompletionChunk]):
 
 async def get_cookie(request: Request, cookie_name: str):
     cookie_data = request.cookies.get(cookie_name)
-    return json.loads(cookie_data) if cookie_data else []
+    if cookie_data:
+        try:
+            return json.loads(cookie_data)
+        except json.JSONDecodeError:
+            return {}
+    return {}
 
 
 async def set_cookie(response: Response, cookie_name: str, data, max_age=0):

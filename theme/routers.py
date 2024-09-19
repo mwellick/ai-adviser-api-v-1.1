@@ -1,8 +1,9 @@
 from fastapi import APIRouter
 from starlette import status
-from dependencies import db_dependency
+from dependencies import db_dependency, user_dependency
 from .crud import get_themes_list
 from .schemas import ThemeRead
+from database.models import Theme
 
 themes_router = APIRouter(
     prefix="/themes",
@@ -17,3 +18,10 @@ themes_router = APIRouter(
 )
 async def get_all_themes(db: db_dependency):
     return await get_themes_list(db)
+
+
+@themes_router.post("/create")
+async def create_theme(db: db_dependency, user: user_dependency):
+    theme = Theme(
+    )
+    ...

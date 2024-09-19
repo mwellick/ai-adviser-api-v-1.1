@@ -21,7 +21,8 @@ MAX_MESSAGES = 10
 async def create_message_by_guest(
         request: Request,
         response: Response,
-        message: MessageCreate
+        message: MessageCreate,
+        chat_id: int = Path(gt=0)
 ):
     chat_data_cookies = await get_cookie(request, "guest_chat_data")
 
@@ -29,6 +30,9 @@ async def create_message_by_guest(
     theme_id = chat_data_cookies.get("theme_id")
 
     messages = await get_cookie(request, "guest_messages")
+
+    if not isinstance(messages, list):
+        messages = []
 
     messages.append(
         {
