@@ -1,6 +1,6 @@
 import pytest
 from database.models import Theme
-from .conftest import TestSessionLocal
+from tests.conftest import TestSessionLocal
 from httpx import AsyncClient
 from starlette import status
 

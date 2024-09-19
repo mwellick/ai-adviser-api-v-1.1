@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
 from starlette import status
-from .conftest import TestSessionLocal
+from tests.conftest import TestSessionLocal
 from user_auth.manager import bcrypt_context
 from database.models import User
 

@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 from starlette import status
 from database.models import Chat
-from .conftest import TestSessionLocal
+from tests.conftest import TestSessionLocal
 from .test_user_auth import create_user
 from .test_themes import create_theme
 
@@ -30,7 +30,7 @@ async def create_chat(create_theme, create_user, ac: AsyncClient):
 
 async def test_create_guest_chat(create_theme, ac: AsyncClient):
     request_data = {
-        "theme_id": 1,
+        "theme_id": create_theme,
         "user_id": None
     }
     response = await ac.post(
