@@ -51,7 +51,7 @@ async def override_get_current_user():
 app.dependency_overrides[get_current_user] = override_get_current_user
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function", autouse=True)
 async def async_db_engine():
     async with engine_test.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

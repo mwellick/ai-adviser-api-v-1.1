@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from httpx import AsyncClient
 from starlette import status
@@ -46,6 +48,44 @@ async def test_login_user(ac: AsyncClient):
         "/user/token", data=form_data
     )
     assert response.status_code == status.HTTP_200_OK
+
+
+async def test_forgot_password(create_user, ac: AsyncClient):
+    response = await ac.post(
+        "/forgot_password",
+        json={
+            "email": "user@example.com"
+        }
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert "detail" in response.json()
+
+
+async def test_reset_password(create_user, ac: AsyncClient):
+    response = await ac.post(
+        "/forgot_password",
+        json={
+            "email": "user@example.com"
+        }
+    )
+    assert response.status_code == status.HTTP_200_OK
+    decode_to_dict = json.load(response)
+    code = ""
+    for i in decode_to_dict.values():
+        split = i.split(" ")
+        code += split[3]
+        break
+
+    reset_password = await ac.patch(
+        "/reset_password",
+        json={
+            "reset_password_code": f"{code}",
+            "new_password": "Qwerty12345",
+            "confirm_password": "Qwerty12345"
+        }
+    )
+    assert reset_password.status_code == status.HTTP_200_OK
+    assert reset_password.json() == {"detail": "Password has been reset successfully"}
 
 
 async def test_logout_user(ac: AsyncClient):

@@ -42,13 +42,13 @@ async def get_actual_user(user: user_dependency):
     return UserRead(**user)
 
 
-@router.post("/forgot_password")
+@router.post("/forgot_password",status_code=status.HTTP_200_OK)
 async def forgot_password(request: ForgotPassword, db: db_dependency):
     await get_existing_user(request.email, db)
     code = str(uuid.uuid1())
     await create_reset_code(request.email, code, db)
     return {
-        "detail": f"Reset password code: {code}\n "
+        "detail": f"Reset password code: {code} \n"
                   f"This code will be available for 10 minutes."
                   f"Please,don't share it to anyone."
     }
