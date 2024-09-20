@@ -18,11 +18,12 @@ from .crud import (
 from dependencies import db_dependency, user_dependency
 
 router = APIRouter(
+    prefix="/auth",
     tags=["auth"]
 )
 
 
-@router.post("/auth/user/", status_code=status.HTTP_201_CREATED)
+@router.post("/user/", status_code=status.HTTP_201_CREATED)
 async def register_user(
         db: db_dependency,
         create_user_request: UserCreate
@@ -30,19 +31,19 @@ async def register_user(
     return await create_user(db, create_user_request)
 
 
-@router.post("/user/token", status_code=status.HTTP_200_OK)
+@router.post("/user/token/", status_code=status.HTTP_200_OK)
 async def login_user(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         db: db_dependency):
     return await user_login(form_data, db)
 
 
-@router.get("/user/me")
+@router.get("/user/me/")
 async def get_actual_user(user: user_dependency):
     return UserRead(**user)
 
 
-@router.post("/forgot_password",status_code=status.HTTP_200_OK)
+@router.post("/forgot_password/",status_code=status.HTTP_200_OK)
 async def forgot_password(request: ForgotPassword, db: db_dependency):
     await get_existing_user(request.email, db)
     code = str(uuid.uuid1())
@@ -54,13 +55,13 @@ async def forgot_password(request: ForgotPassword, db: db_dependency):
     }
 
 
-@router.patch("/reset_password")
+@router.patch("/reset_password/")
 async def reset_password(request: ResetPassword, db: db_dependency):
     await password_reset(request.reset_password_code, request, db)
     return {"detail": "Password has been reset successfully"}
 
 
-@router.get("/user/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.get("/user/logout/", status_code=status.HTTP_204_NO_CONTENT)
 async def logout_user(
         token: Annotated[str, Depends(get_user_token)],
         user: user_dependency,

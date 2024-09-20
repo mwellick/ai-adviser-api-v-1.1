@@ -18,7 +18,7 @@ chats_router = APIRouter(
 )
 
 
-@chats_router.post("/create", status_code=status.HTTP_201_CREATED)
+@chats_router.post("/create/", status_code=status.HTTP_201_CREATED)
 async def create_chat(db: db_dependency, response: Response, chat: ChatCreate):
     chat_instance = await chat_create(db, chat)
 
@@ -39,13 +39,13 @@ async def get_all_chats(user: user_dependency, db: db_dependency):
     return chats
 
 
-@chats_router.get("/saved", status_code=status.HTTP_200_OK)
+@chats_router.get("/saved/", status_code=status.HTTP_200_OK)
 async def get_all_saved_chats(user: user_dependency, db: db_dependency):
     saved_chats = await get_saved_chats_list(user, db)
     return saved_chats
 
 
-@chats_router.get("/{chat_id}", response_model=RetrieveChat, status_code=status.HTTP_200_OK)
+@chats_router.get("/{chat_id}/", response_model=RetrieveChat, status_code=status.HTTP_200_OK)
 async def retrieve_chat(user: user_dependency, db: db_dependency, chat_id: int = Path(gt=0)):
     chat = await get_chat_by_id(user, db, chat_id)
     return chat
@@ -68,7 +68,7 @@ async def delete_all_chats(user: user_dependency, db: db_dependency):
     return {"detail": "All chats were successfully deleted"}
 
 
-@chats_router.delete("/delete/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
+@chats_router.delete("/{chat_id}/delete/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_chat(user: user_dependency, db: db_dependency, chat_id: int = Path(gt=0)):
     await delete_specific_chat(user, db, chat_id)
     return None

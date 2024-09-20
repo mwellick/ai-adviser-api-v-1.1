@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Path, Request, Response
-
+from starlette import status
 from dependencies import db_dependency
 
 from .crud import message_create
@@ -17,7 +17,7 @@ messages_router = APIRouter(
 MAX_MESSAGES = 10
 
 
-@messages_router.post("/guest_chat/{chat_id}/message")
+@messages_router.post("/chats/{chat_id}/guest/message/", status_code=status.HTTP_201_CREATED)
 async def create_message_by_guest(
         request: Request,
         response: Response,
@@ -49,7 +49,7 @@ async def create_message_by_guest(
     return response_message
 
 
-@messages_router.post("/user_chat/{chat_id}/message")
+@messages_router.post("/chats/{chat_id}/message/",status_code=status.HTTP_201_CREATED)
 async def create_message(
         db: db_dependency,
         message: MessageCreate,
