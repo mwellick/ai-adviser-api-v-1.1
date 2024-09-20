@@ -1,5 +1,7 @@
+from datetime import datetime
 from datetime import timedelta
 from typing import Annotated
+from sqlalchemy import select
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from dependencies import db_dependency, user_dependency
@@ -10,8 +12,12 @@ from user_auth.manager import (
     save_blacklist_token
 )
 from user_auth.schemas import UserCreate
-from database.models import User
-from .constraints import validate_user_create, validate_user_login
+from database.models import User, ResetPasswordCodes
+from .constraints import (
+    validate_user_create,
+    validate_user_login,
+    validate_user_exists
+)
 
 
 async def create_user(
@@ -44,6 +50,26 @@ async def user_login(
 
     token = create_access_token(user.email, user.id, timedelta(days=1))
     return {"access_token": token, "type": "bearer"}
+
+
+async def get_existing_user(email: str, db: db_dependency):
+    query = select(User).where(User.email == email)
+    result = await db.execute(query)
+    await validate_user_exists(email, db)
+    user_email = result.scalars().first()
+    return user_email
+
+
+async def create_reset_code(email: str, code: str, db: db_dependency):
+    expiration_time = datetime.now() + timedelta(minutes=10)
+    create_code = ResetPasswordCodes(
+        email=email,
+        reset_code=code,
+        expired_in=expiration_time
+    )
+    db.add(create_code)
+    await db.commit()
+    return create_code
 
 
 async def user_logout(

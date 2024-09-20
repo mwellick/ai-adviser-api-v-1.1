@@ -44,3 +44,15 @@ async def validate_user_login(
             detail="Your email address or password is incorrect"
         )
     return user
+
+
+async def validate_user_exists(email: str, db: db_dependency):
+    query = select(User).where(User.email == email)
+    result = await db.execute(query)
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this email address does not exist"
+        )
+    return user

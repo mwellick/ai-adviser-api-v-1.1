@@ -1,12 +1,19 @@
+import uuid
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
-from .schemas import UserCreate, UserRead
+from .schemas import UserCreate, UserRead, ForgotPassword
 from .manager import (
     get_user_token
 )
-from .crud import create_user, user_login, user_logout
+from .crud import (
+    create_user,
+    user_login,
+    user_logout,
+    get_existing_user,
+    create_reset_code
+)
 from dependencies import db_dependency, user_dependency
 
 router = APIRouter(
@@ -32,6 +39,18 @@ async def login_user(
 @router.get("/user/me")
 async def get_actual_user(user: user_dependency):
     return UserRead(**user)
+
+
+@router.post("/forgot_password")
+async def forgot_password(request: ForgotPassword, db: db_dependency):
+    await get_existing_user(request.email, db)
+    code = str(uuid.uuid1())
+    await create_reset_code(request.email, code, db)
+    return {
+        "detail": f"Reset password code: {code}\n "
+                  f"This code will be available for 10 minutes."
+                  f"Please,don't share it to anyone."
+    }
 
 
 @router.get("/user/logout", status_code=status.HTTP_204_NO_CONTENT)
