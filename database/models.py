@@ -48,6 +48,15 @@ class Message(Base):
     is_ai_response: Mapped[bool] = mapped_column(default=False)
 
 
+class ResetPasswordCodes(Base):
+    __tablename__ = "codes"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    email: Mapped[str] = mapped_column(nullable=False)
+    reset_code: Mapped[str] = mapped_column(String(50))
+    status: Mapped[bool] = mapped_column(default=True)  # 1 - active, 0 - expired
+    expired_in: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class BlackListToken(Base):
     __tablename__ = "unactive_tokens"
 
