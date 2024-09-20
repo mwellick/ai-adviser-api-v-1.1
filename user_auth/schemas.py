@@ -38,3 +38,9 @@ class UserRead(BaseModel):
 
 class ForgotPassword(BaseModel):
     email: EmailStr
+
+
+class ResetPassword(BaseModel):
+    reset_password_code: str
+    new_password: str
+    confirm_password: str

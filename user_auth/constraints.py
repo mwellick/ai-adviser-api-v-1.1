@@ -1,9 +1,10 @@
 from fastapi import HTTPException
+from datetime import datetime
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, desc
 from starlette import status
 from dependencies import db_dependency
-from database.models import User
+from database.models import User, ResetPasswordCodes
 from user_auth.manager import authenticate_user
 
 
@@ -56,3 +57,20 @@ async def validate_user_exists(email: str, db: db_dependency):
             detail="User with this email address does not exist"
         )
     return user
+
+
+async def check_code_expired(code: str, db: db_dependency):
+    query = select(ResetPasswordCodes).where(
+        ResetPasswordCodes.reset_code == code).order_by(
+        desc(ResetPasswordCodes.expired_in)).limit(1)
+
+    result = await db.execute(query)
+    reset_code = result.scalar_one_or_none()
+    if not reset_code or reset_code.expired_in < datetime.now():
+        reset_code.status = False
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Your reset code is expired or does not exist"
+        )
+    return reset_code

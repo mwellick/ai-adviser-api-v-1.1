@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
-from .schemas import UserCreate, UserRead, ForgotPassword
+from .schemas import UserCreate, UserRead, ResetPassword, ForgotPassword
 from .manager import (
     get_user_token
 )
@@ -11,6 +11,7 @@ from .crud import (
     create_user,
     user_login,
     user_logout,
+    password_reset,
     get_existing_user,
     create_reset_code
 )
@@ -51,6 +52,12 @@ async def forgot_password(request: ForgotPassword, db: db_dependency):
                   f"This code will be available for 10 minutes."
                   f"Please,don't share it to anyone."
     }
+
+
+@router.patch("/reset_password")
+async def reset_password(request: ResetPassword, db: db_dependency):
+    await password_reset(request.reset_password_code, request, db)
+    return {"detail": "Password has been reset successfully"}
 
 
 @router.get("/user/logout", status_code=status.HTTP_204_NO_CONTENT)
