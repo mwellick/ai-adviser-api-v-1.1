@@ -3,10 +3,25 @@ from user_auth.routers import router
 from theme.routers import themes_router
 from chat.routers import chats_router
 from message.routers import messages_router
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(
     title="AI Adviser"
 )
+
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 app.include_router(router)
 app.include_router(themes_router)
