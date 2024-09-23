@@ -7,9 +7,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL")
+DATABASE_URL = (
+    os.environ.get("SQLALCHEMY_DATABASE_URL")
+    if os.environ.get("FAST_API_ENV") == "develop"
+    else os.environ.get("SQLALCHEMY_PROD_DATABASE_URL")
+)
 
-engine = create_async_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_async_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(
     autocommit=False,
