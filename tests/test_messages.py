@@ -16,11 +16,11 @@ async def test_create_user_message_and_ai_response(create_theme, create_chat, cr
     }
     assert request_data.get("chat_id") == 1
     response = await ac.post(
-        "/user_chat/1/message",
+        "/chats/1/message",
         json=request_data,
         headers={"Authorization": f"Bearer {token}"}
     )
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_201_CREATED
     assert response.json().get("chat_id") == 1
     assert response.json().get("is_ai_response") is True
 
@@ -49,8 +49,8 @@ async def test_create_guest_message_and_ai_response(create_theme, ac: AsyncClien
         "chat_id": chat_id
     }
     ai_response = await ac.post(
-        f"/guest_chat/{chat_id}/message",
+        f"/chats/{chat_id}/guest/message",
         json=message_form_data
     )
-    assert ai_response.status_code == status.HTTP_200_OK
+    assert ai_response.status_code == status.HTTP_201_CREATED
     assert ai_response.json().get("response") is not None

@@ -63,7 +63,7 @@ async def get_existing_user(email: str, db: db_dependency):
 
 
 async def create_reset_code(email: str, code: str, db: db_dependency):
-    expiration_time = datetime.now() + timedelta(minutes=1)
+    expiration_time = datetime.now() + timedelta(minutes=10)
     create_code = ResetPasswordCodes(
         email=email,
         reset_code=code,
