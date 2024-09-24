@@ -14,15 +14,16 @@ messages_router = APIRouter(
     tags=["messages"]
 )
 
-MAX_MESSAGES = 10
+MAX_MESSAGES = 5
 
 
 @messages_router.post("/chats/{chat_id}/guest/message", status_code=status.HTTP_201_CREATED)
 async def create_message_by_guest(
+        db: db_dependency,
         request: Request,
         response: Response,
         message: MessageCreate,
-        chat_id: int = Path(gt=0)
+        chat_id: int = Path(gt=0),
 ):
     chat_data_cookies = await get_cookie(request, "guest_chat_data")
 
@@ -38,12 +39,17 @@ async def create_message_by_guest(
         {
             "content": message.content,
             "chat_id": chat_id,
-            "theme_id": theme_id
+            "theme_id": theme_id,
+            "is_ai_response": False
         }
     )
+
+    if len(messages) > MAX_MESSAGES:
+        messages = messages[:MAX_MESSAGES]
+
     await set_cookie(response, "guest_messages", messages, max_age=1800)
 
-    ai_response = await generate_guest_response(messages)
+    ai_response = await generate_guest_response(db, messages)
     response_message = {"response": ai_response}
 
     return response_message

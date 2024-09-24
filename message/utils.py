@@ -4,9 +4,9 @@ from openai import AsyncOpenAI, AsyncStream
 from fastapi import Request, Response
 from dotenv import load_dotenv
 from openai.types.chat import ChatCompletionChunk
-from sqlalchemy import select, desc
+from sqlalchemy import select, asc
 from sqlalchemy.orm import joinedload
-from database.models import Message
+from database.models import Message, Theme
 from dependencies import db_dependency
 from database.models import Chat
 
@@ -18,30 +18,37 @@ client = AsyncOpenAI(api_key=OPEN_AI_KEY)
 
 
 async def generate_response(db: db_dependency, chat_id: int):
-    query = select(Message).where(Message.chat_id == chat_id).order_by(desc(Message.created_at)).limit(1)
+    query = select(Message).where(Message.chat_id == chat_id).order_by(asc(Message.created_at))
     result = await db.execute(query)
-    last_message = result.scalar_one_or_none()
+    all_messages = result.scalars().all()
+
     query_chat = select(Chat).options(joinedload(Chat.theme)).where(Chat.id == chat_id)
     res = await db.execute(query_chat)
+
     chat = res.scalars().first()
+
+    ai_messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant. Respond in Markdown format."
+        }
+    ]
+
+    for message in all_messages:
+        role = "user" if not message.is_ai_response else "assistant"
+        ai_messages.append({"role": role, "content": message.content})
+
+    ai_messages.append({"role": "user", "content": chat.theme.name})
 
     ai_response = await client.chat.completions.create(
         model="gpt-4-turbo",
         temperature=1,
-        max_tokens=350,
+        max_tokens=250,
         frequency_penalty=0.7,
         presence_penalty=1.0,
         top_p=0.8,
         stream=True,
-        messages=[
-            {"role": "system",
-             "content": last_message.content
-             },
-            {"role": "user",
-             "content": chat.theme.name
-             }
-
-        ]
+        messages=ai_messages
     )
 
     processed_response = await process_ai_response(ai_response)
@@ -57,21 +64,40 @@ async def generate_response(db: db_dependency, chat_id: int):
     return ai_message
 
 
-async def generate_guest_response(messages: list):
-    user_message = messages[-1]["content"] if messages else ""
+async def generate_guest_response(db: db_dependency, messages: list):
+    theme_id = messages[-1]["theme_id"]
+
+    query = select(Theme).where(Theme.id == theme_id)
+    result = await db.execute(query)
+    theme = result.scalars().first()
+
+    ai_messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant. Respond in Markdown format."
+        }
+    ]
+
+    for message in messages:
+        role = "user" if not message["is_ai_response"] else "assistant"
+        ai_messages.append({"role": role, "content": message["content"]})
+
+    ai_messages.append(
+        {
+            "role": "user",
+            "content": f"Theme: {theme.name}"
+        }
+    )
 
     ai_response = await client.chat.completions.create(
         model="gpt-4",
         temperature=0.7,
-        max_tokens=250,
+        max_tokens=200,
         frequency_penalty=0.5,
         presence_penalty=0.7,
         top_p=0.3,
         stream=True,
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": user_message}
-        ]
+        messages=ai_messages
     )
 
     return await process_ai_response(ai_response)
