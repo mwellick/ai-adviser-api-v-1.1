@@ -1,8 +1,8 @@
 from sqlalchemy import select, desc
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from dependencies import db_dependency, user_dependency
 from database.models import Chat
-from .schemas import ChatCreate
+from .schemas import ChatCreate, ChatRead
 from .constraints import (
     validate_create_chat_with_available_theme,
     check_chat_history,
@@ -30,7 +30,7 @@ async def chat_create(db: db_dependency, chat: ChatCreate):
 
 
 async def get_chats_list(user: user_dependency, db: db_dependency):
-    query = select(Chat).options(joinedload(Chat.user)).where(
+    query = select(Chat).options(joinedload(Chat.user), selectinload(Chat.messages)).where(
         Chat.user_id == user.get("id")
     ).order_by(desc(Chat.created_at))
 
@@ -38,7 +38,9 @@ async def get_chats_list(user: user_dependency, db: db_dependency):
 
     await check_chat_history(user, db)
 
-    chats_list = result.scalars().all()
+    chats = result.scalars().all()
+    chats_list = [ChatRead.get_first_chat_message(chat) for chat in chats]
+
     return chats_list
 
 
