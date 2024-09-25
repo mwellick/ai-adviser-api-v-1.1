@@ -7,7 +7,12 @@ from .test_themes import create_theme
 from .test_user_auth import create_user
 
 
-async def test_create_user_message_and_ai_response(create_theme, create_chat, create_user, ac: AsyncClient):
+async def test_create_user_message_and_ai_response(
+        create_theme,
+        create_chat,
+        create_user,
+        ac: AsyncClient
+):
     chat_id, token = create_chat
     request_data = {
         "content": "Hello world",
@@ -62,23 +67,60 @@ async def test_create_guest_message_and_ai_response(ac: AsyncClient):
         "is_ai_response": False
     }
 
-    ai_messages = [
-        {
-            "role": "system",
-            "content": "You are a helpful assistant. Respond in Markdown format."
-        },
-        {
-            "role": "user",
-            "content": message_form_data["content"]
-        },
-        {"role": "user", "content": f"Theme: {theme.name}"}
-    ]
-
-    print(ai_messages)
-
     ai_response = await ac.post(
         f"/chats/{chat_id}/guest/message",
         json=message_form_data
     )
     assert ai_response.status_code == status.HTTP_201_CREATED, ai_response.json()
     assert ai_response.json().get("response") is not None
+
+
+async def test_save_unsave_message(create_chat, ac: AsyncClient):
+    chat_id, token = create_chat
+    request_data = {
+        "content": "Hello world",
+        "chat_id": chat_id
+    }
+    assert request_data.get("chat_id") == 1
+    await ac.post(
+        "/chats/1/message",
+        json=request_data,
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    msg_save = await ac.get(
+        "/1/message/1/?save=True",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert msg_save.status_code == status.HTTP_200_OK
+    assert msg_save.json().get("detail") == "Message is successfully saved"
+    msg_unsave = await ac.get(
+        "/1/message/1/?save=False",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert msg_unsave.status_code == status.HTTP_200_OK
+    assert msg_unsave.json().get("detail") == "Message is successfully unsaved"
+
+
+async def test_get_all_saved_messages(create_chat, ac: AsyncClient):
+    chat_id, token = create_chat
+    request_data = {
+        "content": "Hello world",
+        "chat_id": chat_id
+    }
+    assert request_data.get("chat_id") == 1
+    await ac.post(
+        "/chats/1/message",
+        json=request_data,
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    save_res = await ac.get(
+        "/1/message/1/?save=True",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert save_res.status_code == status.HTTP_200_OK
+    response = await ac.get(
+        "/messages/saved",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1

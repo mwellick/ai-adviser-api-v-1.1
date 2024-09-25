@@ -67,28 +67,12 @@ async def test_get_list_of_chats(create_chat, ac: AsyncClient):
     assert len(res_data) == 1
 
 
-async def test_save_unsave_chat(create_chat, ac: AsyncClient):
-    chat_id, token = create_chat
-    response = await ac.get("/chats/1/?save=True", headers={"Authorization": f"Bearer {token}"})
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json().get("detail") == "Chat is successfully saved"
-    unsave_request = await ac.get("/chats/1/?save=False", headers={"Authorization": f"Bearer {token}"})
-    assert unsave_request.status_code == status.HTTP_200_OK
-    assert unsave_request.json().get("detail") == "Chat is successfully unsaved"
-
-
-async def test_get_all_saved_chats(create_chat, ac: AsyncClient):
-    chat_id, token = create_chat
-    save_res = await ac.get("/chats/1/?save=True", headers={"Authorization": f"Bearer {token}"})
-    assert save_res.status_code == status.HTTP_200_OK
-    response = await ac.get("/chats/saved", headers={"Authorization": f"Bearer {token}"})
-    assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()) == 1
-
-
 async def test_get_chat_by_id(create_chat, ac: AsyncClient):
     chat_id, token = create_chat
-    response = await ac.get("/chats/1", headers={"Authorization": f"Bearer {token}"})
+    response = await ac.get(
+        "/chats/1",
+        headers={"Authorization": f"Bearer {token}"}
+    )
     assert response.status_code == status.HTTP_200_OK
     assert response.json().get("user_id") == 1
     assert response.json().get("theme_id") == 1
@@ -96,12 +80,18 @@ async def test_get_chat_by_id(create_chat, ac: AsyncClient):
 
 async def test_delete_chat(create_chat, ac: AsyncClient):
     chat_id, token = create_chat
-    response = await ac.delete("/chats/1/delete", headers={"Authorization": f"Bearer {token}"})
+    response = await ac.delete(
+        "/chats/1/delete",
+        headers={"Authorization": f"Bearer {token}"}
+    )
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 async def test_delete_all_chats(create_chat, ac: AsyncClient):
     token = create_chat
-    response = await ac.delete("/chats/delete/", headers={"Authorization": f"Bearer {token}"})
+    response = await ac.delete(
+        "/chats/delete/",
+        headers={"Authorization": f"Bearer {token}"}
+    )
     assert response.status_code == status.HTTP_200_OK
     assert response.json().get("detail") == "All chats were successfully deleted"
