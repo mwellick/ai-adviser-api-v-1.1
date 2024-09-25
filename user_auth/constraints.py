@@ -1,11 +1,13 @@
 from fastapi import HTTPException
 from datetime import datetime
+
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select, or_, desc
 from starlette import status
 from dependencies import db_dependency
 from database.models import User, ResetPasswordCodes
 from user_auth.manager import authenticate_user
+from .schemas import UserLogin
 
 
 async def validate_user_create(db: db_dependency, email: str, username: str):
@@ -31,7 +33,25 @@ async def validate_user_create(db: db_dependency, email: str, username: str):
 
 async def validate_user_login(
         db: db_dependency,
-        form_data: OAuth2PasswordRequestForm
+        form_data: UserLogin
+):
+    user = await authenticate_user(
+        form_data.email,
+        form_data.password,
+        db
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Your email address or password is incorrect"
+        )
+    return user
+
+
+async def validate_user_o2auth_login(
+        db: db_dependency,
+        form_data: OAuth2PasswordRequestForm,
 ):
     user = await authenticate_user(
         form_data.username,

@@ -12,11 +12,12 @@ from user_auth.manager import (
     get_user_token,
     save_blacklist_token
 )
-from user_auth.schemas import UserCreate, ResetPassword
+from user_auth.schemas import UserCreate, ResetPassword, UserLogin
 from database.models import User, ResetPasswordCodes
 from .constraints import (
     validate_user_create,
     validate_user_login,
+    validate_user_o2auth_login,
     validate_user_exists,
     check_code_expired,
 )
@@ -45,10 +46,20 @@ async def create_user(
 
 
 async def user_login(
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+        form_data: UserLogin,
         db: db_dependency
 ):
     user = await validate_user_login(db, form_data)
+
+    token = create_access_token(user.email, user.id, timedelta(days=1))
+    return {"access_token": token, "type": "bearer"}
+
+
+async def user_o2auth_login(
+        form_data: OAuth2PasswordRequestForm,
+        db: db_dependency
+):
+    user = await validate_user_o2auth_login(db, form_data)
 
     token = create_access_token(user.email, user.id, timedelta(days=1))
     return {"access_token": token, "type": "bearer"}

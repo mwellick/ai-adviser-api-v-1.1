@@ -41,11 +41,11 @@ async def test_login_user(ac: AsyncClient):
         }
     )
     form_data = {
-        "username": "user@example.com",
+        "email": "user@example.com",
         "password": "String123"
     }
     response = await ac.post(
-        "/user/token", data=form_data
+        "/user/token", json=form_data
     )
     assert response.status_code == status.HTTP_200_OK
 
@@ -97,7 +97,7 @@ async def test_logout_user(ac: AsyncClient):
         }
     )
     form_data = {
-        "username": "user@example.com",
+        "email": "user@example.com",
         "password": "String123"
     }
     token = await ac.post(

@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
-from .schemas import UserCreate, UserRead, ResetPassword, ForgotPassword
+from .schemas import UserCreate, UserRead, UserLogin, ResetPassword, ForgotPassword
 from .manager import (
     get_user_token
 )
@@ -13,7 +13,7 @@ from .crud import (
     user_logout,
     password_reset,
     get_existing_user,
-    create_reset_code
+    create_reset_code, user_o2auth_login
 )
 from dependencies import db_dependency, user_dependency
 
@@ -32,9 +32,17 @@ async def register_user(
 
 @router.post("/user/token", status_code=status.HTTP_200_OK)
 async def login_user(
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+        form_data: UserLogin,
         db: db_dependency):
     return await user_login(form_data, db)
+
+
+@router.post("/user/login", status_code=status.HTTP_200_OK)
+async def login_user_o2auth_form(
+        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+        db: db_dependency
+):
+    return await user_o2auth_login(form_data,db)
 
 
 @router.get("/user/me")
@@ -42,7 +50,7 @@ async def get_actual_user(user: user_dependency):
     return UserRead(**user)
 
 
-@router.post("/forgot_password",status_code=status.HTTP_200_OK)
+@router.post("/forgot_password", status_code=status.HTTP_200_OK)
 async def forgot_password(request: ForgotPassword, db: db_dependency):
     await get_existing_user(request.email, db)
     code = str(uuid.uuid1())

@@ -22,7 +22,7 @@ async def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-o2auth_bearer = OAuth2PasswordBearer(tokenUrl="/user/token")
+o2auth_bearer = OAuth2PasswordBearer(tokenUrl="/user/login")
 
 
 async def get_current_user(token: Annotated[str, Depends(o2auth_bearer)], db: db_dependency):

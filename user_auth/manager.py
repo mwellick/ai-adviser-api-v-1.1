@@ -18,7 +18,7 @@ JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 ALGORITHM = os.environ.get("JWT_ALGORITHM")
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-o2auth_bearer = OAuth2PasswordBearer(tokenUrl="/user/token")
+o2auth_bearer = OAuth2PasswordBearer(tokenUrl="/user/login")
 
 
 def create_access_token(email: str, user_id: int, expires_delta: timedelta):

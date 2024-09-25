@@ -26,6 +26,11 @@ class UserCreate(BaseModel):
         return value
 
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)
+
+
 class UserRead(BaseModel):
     id: int
     email: EmailStr
