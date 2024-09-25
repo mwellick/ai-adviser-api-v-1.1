@@ -32,9 +32,7 @@ async def check_chat_history(
     result = await db.execute(query)
     chats_list = result.scalars().all()
     if not chats_list:
-        raise HTTPException(
-            status_code=status.HTTP_204_NO_CONTENT
-        )
+        return []
     return chats_list
 
 

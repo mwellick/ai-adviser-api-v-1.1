@@ -16,9 +16,7 @@ async def check_saved_messages_history(user: user_dependency, db: db_dependency)
     result = await db.execute(query)
     saved_chats = result.scalars().all()
     if not saved_chats:
-        raise HTTPException(
-            status_code=status.HTTP_204_NO_CONTENT
-        )
+        return []
     return saved_chats
 
 
