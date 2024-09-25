@@ -82,12 +82,15 @@ async def generate_guest_response(db: db_dependency, messages: list):
         role = "user" if not message["is_ai_response"] else "assistant"
         ai_messages.append({"role": role, "content": message["content"]})
 
-    ai_messages.append(
-        {
-            "role": "user",
-            "content": f"Theme: {theme.name}"
-        }
-    )
+    if theme is not None:
+        ai_messages.append(
+            {
+                "role": "user",
+                "content": f"Theme: {theme.name}"
+            }
+        )
+    else:
+        print("Theme not found!")
 
     ai_response = await client.chat.completions.create(
         model="gpt-4",

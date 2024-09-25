@@ -1,8 +1,7 @@
-import ast
-import json
-import re
 from httpx import AsyncClient
 from starlette import status
+from database.models import Theme
+from .conftest import TestSessionLocal
 from .test_chats import create_chat
 from .test_themes import create_theme
 from .test_user_auth import create_user
@@ -25,14 +24,24 @@ async def test_create_user_message_and_ai_response(create_theme, create_chat, cr
     assert response.json().get("is_ai_response") is True
 
 
-async def test_create_guest_message_and_ai_response(create_theme, ac: AsyncClient):
+async def test_create_guest_message_and_ai_response(ac: AsyncClient):
+    theme = Theme(
+        name="Test Theme",
+        description="test description"
+    )
+    db = TestSessionLocal()
+    db.add(theme)
+    await db.commit()
+
     chat_form_data = {
-        "theme_id": create_theme,
+        "theme_id": theme.id,
         "user_id": None
     }
+
     response = await ac.post(
         "/chats/create", json=chat_form_data
     )
+
     cookies = response.cookies.get("guest_chat_data")
     cookies = cookies.replace("054", "").replace("\\", "")
     str_chat_id = ""
@@ -43,14 +52,33 @@ async def test_create_guest_message_and_ai_response(create_theme, ac: AsyncClien
         elif cookies[i].isdigit() and not cookies[i + 1].isdigit():
             str_chat_id += cookies[i]
             break
+
     chat_id = int(str_chat_id)
+
     message_form_data = {
         "content": "Hello world",
-        "chat_id": chat_id
+        "chat_id": "1",
+        "theme_id": "1",
+        "is_ai_response": False
     }
+
+    ai_messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant. Respond in Markdown format."
+        },
+        {
+            "role": "user",
+            "content": message_form_data["content"]
+        },
+        {"role": "user", "content": f"Theme: {theme.name}"}
+    ]
+
+    print(ai_messages)
+
     ai_response = await ac.post(
         f"/chats/{chat_id}/guest/message",
         json=message_form_data
     )
-    assert ai_response.status_code == status.HTTP_201_CREATED
+    assert ai_response.status_code == status.HTTP_201_CREATED, ai_response.json()
     assert ai_response.json().get("response") is not None
