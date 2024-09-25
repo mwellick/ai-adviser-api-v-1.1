@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Path, Request, Response
+from fastapi import APIRouter, Path, Request, Response, Query
 from starlette import status
-from dependencies import db_dependency
-
-from .crud import message_create
-from .schemas import MessageCreate
+from dependencies import db_dependency, user_dependency
+from .crud import message_create, save_or_unsafe_specific_message, get_saved_messages_list
+from .schemas import MessageCreate, MessageRead
 from dotenv import load_dotenv
 
 from .utils import generate_guest_response, set_cookie, get_cookie
@@ -64,3 +63,22 @@ async def create_message(
     response = await message_create(db, message, chat_id)
 
     return response
+
+
+@messages_router.get("/messages/saved", response_model=list[MessageRead], status_code=status.HTTP_200_OK)
+async def get_all_saved_messages(user: user_dependency, db: db_dependency):
+    ...
+    saved_chats = await get_saved_messages_list(user, db)
+    return saved_chats
+
+
+@messages_router.get("/{chat_id}/message/{message_id}/", status_code=status.HTTP_200_OK)
+async def save_unsave_specific_message(
+        user: user_dependency,
+        db: db_dependency,
+        chat_id: int = Path(gt=0),
+        message_id: int = Path(gt=0),
+        save: bool = Query(True)
+):
+    await save_or_unsafe_specific_message(user, save, db, chat_id, message_id)  # TODO
+    return {"detail": f"Message is successfully {'saved' if save else 'unsaved'}"}

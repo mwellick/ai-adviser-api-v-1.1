@@ -38,20 +38,6 @@ async def check_chat_history(
     return chats_list
 
 
-async def check_saved_chat_history(user: user_dependency, db: db_dependency):
-    query = select(Chat).options(joinedload(Chat.user)).where(
-        Chat.user_id == user.get("id")
-    ).where(Chat.is_saved == True)
-
-    result = await db.execute(query)
-    saved_chats = result.scalars().all()
-    if not saved_chats:
-        raise HTTPException(
-            status_code=status.HTTP_204_NO_CONTENT
-        )
-    return saved_chats
-
-
 async def check_existing_chat(
         user: user_dependency,
         db: db_dependency,

@@ -6,6 +6,7 @@ class MessageCreate(BaseModel):
 
 
 class MessageRead(BaseModel):
+    id: int
     content: str
     is_ai_response: bool
 

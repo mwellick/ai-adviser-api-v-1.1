@@ -14,7 +14,6 @@ class ChatRead(BaseModel):
     created_at: datetime
     theme_id: int
     user_id: Optional[int] = None  # user or guest
-    is_saved: bool
 
     class Config:
         from_attributes = True
@@ -24,5 +23,4 @@ class RetrieveChat(BaseModel):
     created_at: datetime
     theme_id: int
     user_id: Optional[int] = None  # user or guest
-    is_saved: bool
     messages: list[MessageRead]
