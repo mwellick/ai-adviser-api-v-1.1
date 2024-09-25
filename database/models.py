@@ -34,7 +34,6 @@ class Chat(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     user: Mapped["User"] = relationship("User", back_populates="chats")
     messages: Mapped[list["Message"]] = relationship("Message", back_populates="chat", cascade="all,delete-orphan")
-    is_saved: Mapped[bool] = mapped_column(default=False)
 
 
 class Message(Base):
@@ -46,6 +45,7 @@ class Message(Base):
     chat: Mapped["Chat"] = relationship("Chat", back_populates="messages")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_ai_response: Mapped[bool] = mapped_column(default=False)
+    is_saved: Mapped[bool] = mapped_column(default=False)
 
 
 class ResetPasswordCodes(Base):
