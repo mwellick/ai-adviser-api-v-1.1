@@ -3,7 +3,7 @@ from sqlalchemy import select
 from starlette import status
 from dependencies import db_dependency, user_dependency
 from .crud import get_themes_list
-from .schemas import ThemeRead
+from .schemas import ThemeRead, ThemeCreate
 from database.models import Theme
 
 themes_router = APIRouter(
@@ -23,17 +23,17 @@ async def get_all_themes(db: db_dependency):
 
 @themes_router.post("/create", status_code=status.HTTP_201_CREATED)
 async def create_theme(
-        name: str,
-        description: str,
         db: db_dependency,
-        user: user_dependency
+        user: user_dependency,
+        theme_create: ThemeCreate
 ):  # TODO Temporary endpoint. To delete it when project goes to prod
     theme = Theme(
-        name=name,
-        description=description
+        name=theme_create.name,
+        description=theme_create.description
     )
     db.add(theme)
     await db.commit()
+    return theme
 
 
 @themes_router.delete("/{theme_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
