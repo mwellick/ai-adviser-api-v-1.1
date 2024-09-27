@@ -135,5 +135,5 @@ async def set_cookie(response: Response, cookie_name: str, data, max_age=0):
         value=json.dumps(data),
         max_age=max_age,
         httponly=True,
-        secure=True
+        secure=False
     )
