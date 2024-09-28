@@ -13,6 +13,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column()
     is_active: Mapped[bool] = mapped_column(default=True)
     chats: Mapped[list["Chat"]] = relationship("Chat", back_populates="user")
+    saved_messages: Mapped[list["SavedMessages"]] = relationship("SavedMessages", back_populates="user")
 
 
 class Theme(Base):
@@ -46,6 +47,17 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_ai_response: Mapped[bool] = mapped_column(default=False)
     is_saved: Mapped[bool] = mapped_column(default=False)
+
+
+class SavedMessages(Base):
+    __tablename__ = "saved_messages"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    user_request: Mapped[str] = mapped_column(Text, nullable=False)
+    ai_response: Mapped[str] = mapped_column(Text, nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    user: Mapped["User"] = relationship("User", back_populates="saved_messages")
 
 
 class ResetPasswordCodes(Base):
