@@ -1,9 +1,10 @@
+from datetime import datetime
 from sqlalchemy import select, and_, desc
 from sqlalchemy.orm import joinedload
 from dependencies import db_dependency, user_dependency
-from database.models import Message, Chat
+from database.models import Message, Chat, SavedMessages
 from chat.constraints import check_existing_chat
-from .constraints import check_saved_messages_history, check_existing_message
+from .constraints import check_saved_messages_history
 from .schemas import MessageCreate
 from .utils import generate_response
 
@@ -20,6 +21,75 @@ async def message_create(db: db_dependency, message: MessageCreate, chat_id: int
     response = await generate_response(db, chat_id)
 
     return response
+
+
+async def get_message(db: db_dependency, chat_id: int, message_id: int):
+    message_query = select(Message).where(
+        and_(Message.chat_id == chat_id, Message.id == message_id)
+    ).order_by(desc(Message.created_at))
+
+    result = await db.execute(message_query)
+    return result.scalars().first()
+
+
+async def get_previous_message(db: db_dependency, message_created_at: datetime, chat_id: int):
+    previous_message_query = select(Message).where(
+        and_(
+            Message.chat_id == chat_id,
+            Message.created_at < message_created_at,
+            Message.is_ai_response == False  #
+        )
+    ).order_by(desc(Message.created_at))
+
+    result = await db.execute(previous_message_query)
+    return result.scalars().first()
+
+
+async def get_existing_saved_message(
+        db: db_dependency,
+        user: user_dependency,
+        user_request: str,
+        ai_response: str
+):
+    saved_message_query = select(SavedMessages).where(
+        and_(
+            SavedMessages.user_id == user.get("id"),
+            SavedMessages.user_request == user_request,
+            SavedMessages.ai_response == ai_response
+        )
+    )
+    result = await db.execute(saved_message_query)
+    return result.scalars().first()
+
+
+async def save_of_delete_from_db(
+        db: db_dependency,
+        user: user_dependency,
+        user_request: str,
+        ai_response: str,
+        save: bool
+
+):
+    if save is True:
+        save_to_db = SavedMessages(
+            user_request=user_request,
+            ai_response=ai_response,
+            user_id=user.get("id")
+        )
+        db.add(save_to_db)
+
+    elif save is False:
+        saved_message_query = await get_existing_saved_message(
+            db,
+            user,
+            user_request,
+            ai_response
+        )
+        if saved_message_query:
+            await db.delete(saved_message_query)
+
+    await db.commit()
+    return None
 
 
 async def save_or_unsafe_specific_message(
@@ -39,34 +109,40 @@ async def save_or_unsafe_specific_message(
 
     await check_existing_chat(user, db, chat_id)
 
-    message_query = select(Message).where(
-        and_(Message.chat_id == chat_id, Message.id == message_id)
-    ).order_by(desc(Message.created_at))
-
-    result = await db.execute(message_query)
-
-    await check_existing_message(user, db, message_id)
-
-    message = result.scalars().first()
+    message = await get_message(db, chat_id, message_id)
 
     message.is_saved = save
 
     if message.is_ai_response:
-        previous_message_query = select(Message).where(
-            and_(
-                Message.chat_id == chat_id,
-                Message.created_at < message.created_at,
-                Message.is_ai_response == False  #
-            )
-        ).order_by(desc(Message.created_at))
-
-        result = await db.execute(previous_message_query)
-        previous_message = result.scalars().first()
+        previous_message = await get_previous_message(db, message.created_at, chat_id)
 
         if previous_message:
             previous_message.is_saved = save
 
-    await db.commit()
+        saved_messages_query = await get_existing_saved_message(
+            db,
+            user,
+            previous_message.content,
+            message.content
+        )
+        if save is True:
+            if saved_messages_query is None:
+                await save_of_delete_from_db(
+                    db,
+                    user,
+                    previous_message.content,
+                    message.content,
+                    True
+                )
+        elif save is False:
+            if saved_messages_query is not None:
+                await save_of_delete_from_db(
+                    db,
+                    user,
+                    previous_message.content,
+                    message.content,
+                    False
+                )
     return None
 
 
@@ -75,9 +151,14 @@ async def get_saved_messages_list(user: user_dependency, db: db_dependency):
         Chat.user_id == user.get("id")
     ).where(Message.is_saved == True)
 
-    result = await db.execute(query)
+    query_result = await db.execute(query)
+
+    if not query_result:
+        get_user_saved = select(SavedMessages).where(user.get("id") == SavedMessages.user_id)
+        result = await db.execute(get_user_saved)
+        return result
 
     await check_saved_messages_history(user, db)
 
-    saved_chats = result.scalars().all()
+    saved_chats = query_result.scalars().all()
     return saved_chats
