@@ -1,7 +1,14 @@
 from fastapi import APIRouter, Path, Request, Response, Query
 from starlette import status
+
 from dependencies import db_dependency, user_dependency
-from .crud import message_create, save_or_unsafe_specific_message, get_saved_messages_list
+from .crud import (
+    message_create,
+    save_or_unsafe_specific_message,
+    get_saved_messages_list,
+    delete_specific_saved_message,
+    delete_saved_messages
+)
 from .schemas import MessageCreate, MessageRead, SavedMessageRead
 from dotenv import load_dotenv
 from typing import Union
@@ -82,3 +89,20 @@ async def save_unsave_specific_message(
 ):
     await save_or_unsafe_specific_message(user, save, db, chat_id, message_id)  # TODO
     return {"detail": f"Message is successfully {'saved' if save else 'unsaved'}"}
+
+
+@messages_router.delete("/saved/{saved_message_id}/delete", status_code=status.HTTP_200_OK)
+async def delete_saved_message(
+        user: user_dependency,
+        db: db_dependency,
+        saved_message_id: int = Path(gt=0)
+):
+    return await delete_specific_saved_message(user, db, saved_message_id)
+
+
+@messages_router.delete("/saved/delete", status_code=status.HTTP_200_OK)
+async def delete_all_saved_messages(
+        user: user_dependency,
+        db: db_dependency
+):
+    return await delete_saved_messages(user, db)
