@@ -12,3 +12,13 @@ class MessageRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class SavedMessageRead(BaseModel):
+    id: int
+    user_request: str
+    ai_response: str
+    user_id: int
+
+    class Config:
+        from_attributes = True
