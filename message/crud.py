@@ -5,7 +5,7 @@ from dependencies import db_dependency, user_dependency
 from database.models import Message, Chat, SavedMessages
 from chat.constraints import check_existing_chat
 from .constraints import check_saved_messages_history
-from .schemas import MessageCreate
+from .schemas import MessageCreate, MessageRead, SavedMessageRead
 from .utils import generate_response
 
 
@@ -152,13 +152,27 @@ async def get_saved_messages_list(user: user_dependency, db: db_dependency):
     ).where(Message.is_saved == True)
 
     query_result = await db.execute(query)
+    saved_messages = query_result.scalars().all()
 
-    if not query_result:
-        get_user_saved = select(SavedMessages).where(user.get("id") == SavedMessages.user_id)
-        result = await db.execute(get_user_saved)
-        return result
+    if saved_messages:
+        return [
+            MessageRead.model_validate(
+                saved, from_attributes=True
+            ) for saved in saved_messages
+        ]
+
+    saved_message_query = select(SavedMessages).where(
+        SavedMessages.user_id == user.get("id")
+    )
+    saved_messages_query = await db.execute(saved_message_query)
+    saved_messages_result = saved_messages_query.scalars().all()
+    if saved_messages_result:
+        return [
+            SavedMessageRead.model_validate(
+                saved, from_attributes=True
+            ) for saved in saved_messages_result
+        ]
 
     await check_saved_messages_history(user, db)
 
-    saved_chats = query_result.scalars().all()
-    return saved_chats
+    return []
