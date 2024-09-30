@@ -18,7 +18,6 @@ class SavedMessageRead(BaseModel):
     id: int
     user_request: str
     ai_response: str
-    user_id: int
 
     class Config:
         from_attributes = True

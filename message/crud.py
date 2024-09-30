@@ -180,6 +180,21 @@ async def get_saved_messages_list(user: user_dependency, db: db_dependency):
     return []
 
 
+async def get_specific_saved_message(
+        user: user_dependency,
+        db: db_dependency,
+        saved_message_id: int
+):
+    query = select(SavedMessages).where(
+        SavedMessages.id == saved_message_id
+    ).where(SavedMessages.user_id == user.get("id"))
+
+    result = await db.execute(query)
+    await check_existing_saved_message(user, db, saved_message_id)
+    saved_message = result.scalars().first()
+    return saved_message
+
+
 async def delete_specific_saved_message(
         user: user_dependency,
         db: db_dependency,

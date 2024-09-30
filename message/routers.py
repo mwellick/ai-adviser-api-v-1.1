@@ -7,7 +7,8 @@ from .crud import (
     save_or_unsafe_specific_message,
     get_saved_messages_list,
     delete_specific_saved_message,
-    delete_saved_messages
+    delete_saved_messages,
+    get_specific_saved_message
 )
 from .schemas import MessageCreate, MessageRead, SavedMessageRead
 from dotenv import load_dotenv
@@ -89,6 +90,15 @@ async def save_unsave_specific_message(
 ):
     await save_or_unsafe_specific_message(user, save, db, chat_id, message_id)  # TODO
     return {"detail": f"Message is successfully {'saved' if save else 'unsaved'}"}
+
+
+@messages_router.get("/saved/{saved_message_id}",response_model=SavedMessageRead)
+async def retrieve_saved_message(
+        user: user_dependency,
+        db: db_dependency,
+        saved_message_id: int = Path(gt=0)
+):
+    return await get_specific_saved_message(user, db, saved_message_id)
 
 
 @messages_router.delete("/saved/{saved_message_id}/delete", status_code=status.HTTP_200_OK)

@@ -36,8 +36,6 @@ async def get_chats_list(user: user_dependency, db: db_dependency):
 
     result = await db.execute(query)
 
-    await check_chat_history(user, db)
-
     chats = result.scalars().all()
     chats_list = [ChatRead.get_first_chat_message(chat) for chat in chats]
 
