@@ -9,6 +9,17 @@ class ChatCreate(BaseModel):
     user_id: Optional[int] = None  # user or guest
 
 
+class ChatCreated(BaseModel):
+    id: int
+    theme_id: int
+    user_id: Optional[int] = None  # user or guest
+    created_at: datetime
+
+
+class GuestChatCreated(BaseModel):
+    id: int
+
+
 class ChatRead(BaseModel):
     id: int
     created_at: datetime

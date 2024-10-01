@@ -1,5 +1,7 @@
 import random
-from fastapi import APIRouter, Path, Response
+from typing import Union
+
+from fastapi import APIRouter, Path, Request, Response
 from starlette import status
 from dependencies import db_dependency, user_dependency
 from message.utils import set_cookie
@@ -10,7 +12,7 @@ from .crud import (
     delete_all_chat_history,
     get_chat_by_id
 )
-from .schemas import ChatCreate, ChatRead, RetrieveChat
+from .schemas import ChatCreate, ChatRead, RetrieveChat, ChatCreated, GuestChatCreated
 
 chats_router = APIRouter(
     prefix="/chats",
@@ -18,7 +20,8 @@ chats_router = APIRouter(
 )
 
 
-@chats_router.post("/create", status_code=status.HTTP_201_CREATED)
+@chats_router.post("/create", response_model=Union[ChatCreated, GuestChatCreated],
+                   status_code=status.HTTP_201_CREATED)
 async def create_chat(db: db_dependency, response: Response, chat: ChatCreate):
     chat_instance = await chat_create(db, chat)
 
@@ -29,6 +32,7 @@ async def create_chat(db: db_dependency, response: Response, chat: ChatCreate):
             "theme_id": chat_instance.theme_id
         }
         await set_cookie(response, "guest_chat_data", chat_data, max_age=1800)
+        return GuestChatCreated(id=chat_id)
 
     return chat_instance
 
