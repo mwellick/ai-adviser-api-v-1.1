@@ -62,7 +62,6 @@ async def delete_all_chat_history(user: user_dependency, db: db_dependency):
         await db.delete(chat)
 
     await db.commit()
-    return None
 
 
 async def delete_specific_chat(
@@ -81,4 +80,4 @@ async def delete_specific_chat(
     await check_existing_chat(user, db, chat_id)
     await db.delete(chat_to_delete)
     await db.commit()
-    return None
+

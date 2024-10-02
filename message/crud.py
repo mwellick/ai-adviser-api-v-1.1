@@ -1,3 +1,5 @@
+from fastapi import HTTPException
+from starlette import status
 from datetime import datetime
 from sqlalchemy import select, and_, desc
 from sqlalchemy.orm import joinedload
@@ -113,8 +115,14 @@ async def save_or_unsafe_specific_message(
 
     message = await get_message(db, chat_id, message_id)
 
-    message.is_saved = save
+    try:
+        message.is_saved = save
+    except Exception:
+        raise HTTPException(
+            detail="A message with this id does not exist in this chat",
+            status_code=status.HTTP_404_NOT_FOUND
 
+        )
     if message.is_ai_response:
         previous_message = await get_previous_message(db, message.created_at, chat_id)
 
@@ -145,7 +153,6 @@ async def save_or_unsafe_specific_message(
                     message.content,
                     False
                 )
-    return None
 
 
 async def get_saved_messages_list(user: user_dependency, db: db_dependency):
@@ -211,7 +218,6 @@ async def delete_specific_saved_message(
     await check_existing_saved_message(user, db, saved_message_id)
     await db.delete(saved_message_to_delete)
     await db.commit()
-    return None
 
 
 async def delete_saved_messages(

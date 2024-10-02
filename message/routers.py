@@ -92,7 +92,7 @@ async def save_unsave_specific_message(
     return {"detail": f"Message is successfully {'saved' if save else 'unsaved'}"}
 
 
-@messages_router.get("/saved/{saved_message_id}",response_model=SavedMessageRead)
+@messages_router.get("/saved/{saved_message_id}",response_model=SavedMessageRead,status_code=status.HTTP_200_OK)
 async def retrieve_saved_message(
         user: user_dependency,
         db: db_dependency,
@@ -101,7 +101,7 @@ async def retrieve_saved_message(
     return await get_specific_saved_message(user, db, saved_message_id)
 
 
-@messages_router.delete("/saved/{saved_message_id}/delete", status_code=status.HTTP_200_OK)
+@messages_router.delete("/saved/{saved_message_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_saved_message(
         user: user_dependency,
         db: db_dependency,
@@ -110,7 +110,7 @@ async def delete_saved_message(
     return await delete_specific_saved_message(user, db, saved_message_id)
 
 
-@messages_router.delete("/saved/delete", status_code=status.HTTP_200_OK)
+@messages_router.delete("/saved/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_all_saved_messages(
         user: user_dependency,
         db: db_dependency

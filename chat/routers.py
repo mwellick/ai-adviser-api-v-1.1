@@ -57,5 +57,4 @@ async def delete_all_chats(user: user_dependency, db: db_dependency):
 
 @chats_router.delete("/{chat_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_chat(user: user_dependency, db: db_dependency, chat_id: int = Path(gt=0)):
-    await delete_specific_chat(user, db, chat_id)
-    return None
+    return await delete_specific_chat(user, db, chat_id)
