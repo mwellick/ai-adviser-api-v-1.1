@@ -6,8 +6,12 @@ from sqlalchemy.orm import joinedload
 from dependencies import db_dependency, user_dependency
 from database.models import Message, Chat, SavedMessages
 from chat.constraints import check_existing_chat
-from .constraints import check_saved_messages_history, check_existing_saved_message, check_db_saved_messages, \
+from .constraints import (
+    check_saved_messages_history,
+    check_existing_saved_message,
+    check_db_saved_messages,
     check_existing_message
+)
 from .schemas import MessageCreate, MessageRead, SavedMessageRead
 from .utils import generate_response
 
@@ -102,14 +106,6 @@ async def save_or_unsafe_specific_message(
         chat_id: int,
         message_id: int
 ):
-    query = select(Chat).options(joinedload(Chat.user)).where(
-        Chat.user_id == user.get("id")
-    ).where(Chat.id == chat_id)
-
-    result = await db.execute(query)
-
-    result.scalars().first()
-
     await check_existing_chat(user, db, chat_id)
     await check_existing_message(user, db, message_id)
 
@@ -192,13 +188,7 @@ async def get_specific_saved_message(
         db: db_dependency,
         saved_message_id: int
 ):
-    query = select(SavedMessages).where(
-        SavedMessages.id == saved_message_id
-    ).where(SavedMessages.user_id == user.get("id"))
-
-    result = await db.execute(query)
-    await check_existing_saved_message(user, db, saved_message_id)
-    saved_message = result.scalars().first()
+    saved_message = await check_existing_saved_message(user, db, saved_message_id)
     return saved_message
 
 
@@ -207,33 +197,20 @@ async def delete_specific_saved_message(
         db: db_dependency,
         saved_message_id: int
 ):
-    query = select(SavedMessages).where(
-        SavedMessages.user_id == user.get("id")
-    ).where(SavedMessages.id == saved_message_id)
-
-    result = await db.execute(query)
-
-    saved_message_to_delete = result.scalars().first()
-
-    await check_existing_saved_message(user, db, saved_message_id)
-    await db.delete(saved_message_to_delete)
+    saved_message_to_delete = await check_existing_saved_message(user, db, saved_message_id)
+    delete = await db.delete(saved_message_to_delete)
     await db.commit()
+    return delete
 
 
 async def delete_saved_messages(
         user: user_dependency,
         db: db_dependency
 ):
-    query = select(SavedMessages).where(
-        SavedMessages.user_id == user.get("id")
-    )
-
-    result = await db.execute(query)
-    delete_all = result.scalars().all()
-
-    await check_db_saved_messages(user, db)
+    delete_all = await check_db_saved_messages(user, db)
 
     for saved_message in delete_all:
-        await db.delete(saved_message)
+        delete_all = await db.delete(saved_message)
 
     await db.commit()
+    return delete_all

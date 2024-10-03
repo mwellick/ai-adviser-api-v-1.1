@@ -153,7 +153,7 @@ async def test_delete_saved_message(create_chat, ac: AsyncClient):
         "/saved/1/delete",
         headers={"Authorization": f"Bearer {token}"}
     )
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 async def test_delete_all_saved_messages(create_chat, ac: AsyncClient):
@@ -165,7 +165,7 @@ async def test_delete_all_saved_messages(create_chat, ac: AsyncClient):
         "/saved/delete",
         headers={"Authorization": f"Bearer {token}"}
     )
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 async def test_still_saved_message_if_chat_deleted(create_chat, ac: AsyncClient):

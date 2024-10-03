@@ -48,7 +48,7 @@ async def check_existing_message(user: user_dependency, db: db_dependency, messa
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Message not found"
         )
-    return None
+    return message
 
 
 async def check_existing_saved_message(
@@ -62,10 +62,10 @@ async def check_existing_saved_message(
 
     result = await db.execute(query)
 
-    saved_message_to_delete = result.scalars().first()
-    if not saved_message_to_delete:
+    saved_message = result.scalars().first()
+    if not saved_message:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Saved message not found"
         )
-    return None
+    return saved_message

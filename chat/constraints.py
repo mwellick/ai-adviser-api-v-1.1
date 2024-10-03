@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy import select, desc
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from starlette import status
 from dependencies import db_dependency, user_dependency
 from database.models import Chat, Theme
@@ -25,7 +25,10 @@ async def check_chat_history(
         user: user_dependency,
         db: db_dependency
 ):
-    query = select(Chat).options(joinedload(Chat.user)).where(
+    query = select(Chat).options(
+        joinedload(Chat.user),
+        selectinload(Chat.messages)
+    ).where(
         Chat.user_id == user.get("id")
     ).order_by(desc(Chat.created_at))
 
@@ -41,16 +44,19 @@ async def check_existing_chat(
         db: db_dependency,
         chat_id: int
 ):
-    query = select(Chat).options(joinedload(Chat.user)).where(
+    query = select(Chat).options(
+        joinedload(Chat.user),
+        joinedload(Chat.messages)
+    ).where(
         Chat.user_id == user.get("id")
     ).where(Chat.id == chat_id)
 
     result = await db.execute(query)
 
-    chat_to_delete = result.scalars().first()
-    if not chat_to_delete:
+    chat = result.scalars().first()
+    if not chat:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Chat not found"
         )
-    return None
+    return chat

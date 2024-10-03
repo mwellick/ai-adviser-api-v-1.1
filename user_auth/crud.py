@@ -66,10 +66,7 @@ async def user_o2auth_login(
 
 
 async def get_existing_user(email: str, db: db_dependency):
-    query = select(User).where(User.email == email)
-    result = await db.execute(query)
-    await validate_user_exists(email, db)
-    user_email = result.scalars().first()
+    user_email = await validate_user_exists(email, db)
     return user_email
 
 
@@ -118,5 +115,5 @@ async def user_logout(
         user: user_dependency,
         db: db_dependency
 ):
-    await save_blacklist_token(token=token, current_user=user, db=db)
+    await save_blacklist_token(db, user, token)
     return None

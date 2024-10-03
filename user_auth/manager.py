@@ -52,8 +52,9 @@ async def save_blacklist_token(
     result = await db.execute(query)
     blacklist_token = result.scalars().first()
     if blacklist_token:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Token is already blacklisted"
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token is already blacklisted"
                             )
 
     blacklist_token = BlackListToken(
