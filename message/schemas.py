@@ -9,6 +9,7 @@ class MessageRead(BaseModel):
     id: int
     content: str
     is_ai_response: bool
+    is_saved: bool
 
     class Config:
         from_attributes = True
