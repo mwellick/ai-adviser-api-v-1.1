@@ -10,9 +10,9 @@ from user_auth.manager import authenticate_user
 from .schemas import UserLogin
 
 
-async def validate_user_create(db: db_dependency, email: str, username: str):
+async def validate_user_create(db: db_dependency, email: str):
     query = select(User).where(
-        or_(User.email == email, User.username == username)
+        or_(User.email == email)
     )
     result = await db.execute(query)
     user = result.scalars().first()
@@ -23,11 +23,7 @@ async def validate_user_create(db: db_dependency, email: str, username: str):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User with this email is already exists"
             )
-        if user.username == username:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User with this username is already exists"
-            )
+
     return user
 
 

@@ -1,3 +1,6 @@
+import os
+import requests
+from dotenv import load_dotenv
 from datetime import datetime
 from datetime import timedelta
 from typing import Annotated
@@ -22,6 +25,14 @@ from .constraints import (
     check_code_expired,
 )
 
+load_dotenv()
+
+CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
+AUTH_URL = os.environ.get("AUTH_URL")
+CLIENT_ID = os.environ.get("CLIENT_ID")
+TOKEN_URL = os.environ.get("TOKEN_URL")
+REDIRECT_URL = os.environ.get("REDIRECT_URL")
+
 
 async def create_user(
         db: db_dependency,
@@ -30,12 +41,10 @@ async def create_user(
     await validate_user_create(
         db,
         create_user_request.email,
-        create_user_request.username
     )
 
     create_user_model = User(
         email=create_user_request.email,
-        username=create_user_request.username,
         hashed_password=bcrypt_context.hash(create_user_request.password),
         is_active=True
     )
@@ -117,3 +126,42 @@ async def user_logout(
 ):
     await save_blacklist_token(db, user, token)
     return None
+
+
+async def google_auth(code: str, db: db_dependency):
+    token_url = TOKEN_URL
+    data = {
+        "code": code,
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "redirect_uri": REDIRECT_URL,
+        "grant_type": "authorization_code",
+    }
+    response = requests.post(token_url, data=data)
+    access_token = response.json().get("access_token")
+    user_info_response = requests.get(
+        "https://www.googleapis.com/oauth2/v1/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+    user_info = user_info_response.json()
+    email = user_info.get("email")
+
+    query = select(User).where(User.email == email)
+    result = await db.execute(query)
+
+    user = result.scalars().first()
+
+    if not user:
+        user_create = User(
+            email=email,
+            hashed_password=None
+
+        )
+        db.add(user_create)
+        await db.commit()
+
+        token = create_access_token(user_create.email, user.id, timedelta(days=1))
+        return {"access_token": token, "type": "bearer"}
+
+    token = create_access_token(user.email, user.id, timedelta(days=1))
+    return {"access_token": token, "type": "bearer"}

@@ -1,9 +1,17 @@
+import os
 import uuid
+from dotenv import load_dotenv
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
-from .schemas import UserCreate, UserRead, UserLogin, ResetPassword, ForgotPassword
+from .schemas import (
+    UserCreate,
+    UserRead,
+    UserLogin,
+    ResetPassword,
+    ForgotPassword
+)
 from .manager import (
     get_user_token
 )
@@ -13,13 +21,21 @@ from .crud import (
     user_logout,
     password_reset,
     get_existing_user,
-    create_reset_code, user_o2auth_login
+    create_reset_code, user_o2auth_login, google_auth
 )
 from dependencies import db_dependency, user_dependency
+
+load_dotenv()
 
 router = APIRouter(
     tags=["auth"]
 )
+
+AUTH_URL = os.environ.get("AUTH_URL")
+CLIENT_ID = os.environ.get("CLIENT_ID")
+TOKEN_URL = os.environ.get("TOKEN_URL")
+CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
+REDIRECT_URL = os.environ.get("REDIRECT_URL")
 
 
 @router.post("/auth/user/", status_code=status.HTTP_201_CREATED)
@@ -28,6 +44,18 @@ async def register_user(
         create_user_request: UserCreate
 ):
     return await create_user(db, create_user_request)
+
+
+@router.get("/google/login")
+async def google_login():
+    return {
+        "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URL}&scope=openid%20profile%20email&access_type=offline"
+    }
+
+
+@router.get("/auth/google")
+async def auth_google(code: str, db: db_dependency):
+    return await google_auth(code, db)
 
 
 @router.post("/user/token", status_code=status.HTTP_200_OK)
@@ -42,7 +70,7 @@ async def login_user_o2auth_form(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         db: db_dependency
 ):
-    return await user_o2auth_login(form_data,db)
+    return await user_o2auth_login(form_data, db)
 
 
 @router.get("/user/me")
