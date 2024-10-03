@@ -9,8 +9,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     email: Mapped[str] = mapped_column(unique=True, nullable=False)
-    username: Mapped[str] = mapped_column(unique=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column()
+    hashed_password: Mapped[str] = mapped_column(nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True)
     chats: Mapped[list["Chat"]] = relationship("Chat", back_populates="user")
     saved_messages: Mapped[list["SavedMessages"]] = relationship("SavedMessages", back_populates="user")

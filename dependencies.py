@@ -59,7 +59,6 @@ async def get_current_user(token: Annotated[str, Depends(o2auth_bearer)], db: db
         return {
             "id": user.id,
             "email": user.email,
-            "username": user.username,
             "is_active": user.is_active
 
         }

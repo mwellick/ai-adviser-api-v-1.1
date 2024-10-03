@@ -12,7 +12,6 @@ from database.models import User
 async def create_user():
     user = User(
         email="user@example.com",
-        username="testuser123",
         hashed_password=bcrypt_context.hash("String123")
     )
     db = TestSessionLocal()
@@ -25,7 +24,6 @@ async def test_register_user(ac: AsyncClient):
     response = await ac.post(
         "/auth/user/", json={
             "email": "user@example.com",
-            "username": "testuser123",
             "password": "String123"
         }
     )
@@ -36,7 +34,6 @@ async def test_login_user(ac: AsyncClient):
     await ac.post(
         "/auth/user/", json={
             "email": "user@example.com",
-            "username": "testuser123",
             "password": "String123"
         }
     )
@@ -92,7 +89,6 @@ async def test_logout_user(ac: AsyncClient):
     await ac.post(
         "/auth/user/", json={
             "email": "user@example.com",
-            "username": "testuser123",
             "password": "String123"
         }
     )
