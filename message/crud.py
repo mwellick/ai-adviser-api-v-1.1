@@ -16,7 +16,8 @@ from .schemas import MessageCreate, MessageRead, SavedMessageRead
 from .utils import generate_response
 
 
-async def message_create(db: db_dependency, message: MessageCreate, chat_id: int):
+async def message_create(db: db_dependency, user: user_dependency, message: MessageCreate, chat_id: int):
+    await check_existing_chat(user, db, chat_id)
     message = Message(
         content=message.content,
         chat_id=chat_id
@@ -24,7 +25,6 @@ async def message_create(db: db_dependency, message: MessageCreate, chat_id: int
     )
     db.add(message)
     await db.commit()
-
     response = await generate_response(db, chat_id)
 
     return response

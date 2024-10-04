@@ -65,10 +65,11 @@ async def create_message_by_guest(
 @messages_router.post("/chats/{chat_id}/message", status_code=status.HTTP_201_CREATED)
 async def create_message(
         db: db_dependency,
+        user: user_dependency,
         message: MessageCreate,
         chat_id: int = Path(gt=0)
 ):
-    response = await message_create(db, message, chat_id)
+    response = await message_create(db, user, message, chat_id)
 
     return response
 
@@ -92,7 +93,7 @@ async def save_unsave_specific_message(
     return {"detail": f"Message is successfully {'saved' if save else 'unsaved'}"}
 
 
-@messages_router.get("/saved/{saved_message_id}",response_model=SavedMessageRead,status_code=status.HTTP_200_OK)
+@messages_router.get("/saved/{saved_message_id}", response_model=SavedMessageRead, status_code=status.HTTP_200_OK)
 async def retrieve_saved_message(
         user: user_dependency,
         db: db_dependency,

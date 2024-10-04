@@ -51,10 +51,14 @@ async def retrieve_chat(user: user_dependency, db: db_dependency, chat_id: int =
 
 @chats_router.delete("/delete/", status_code=status.HTTP_200_OK)
 async def delete_all_chats(user: user_dependency, db: db_dependency):
-    await delete_all_chat_history(user, db)
+    chats_to_delete = await delete_all_chat_history(user, db)
+    if not chats_to_delete:
+        return {"detail": "Nothing found to delete"}
     return {"detail": "All chats were successfully deleted"}
 
 
-@chats_router.delete("/{chat_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
+@chats_router.delete("/{chat_id}/delete", status_code=status.HTTP_200_OK)
 async def delete_chat(user: user_dependency, db: db_dependency, chat_id: int = Path(gt=0)):
-    await delete_specific_chat(user, db, chat_id)
+    chat_to_delete = await delete_specific_chat(user, db, chat_id)
+    if not chat_to_delete:
+        return {"detail": "Chat not found"}

@@ -30,7 +30,7 @@ async def chat_create(db: db_dependency, chat: ChatCreate):
 
 
 async def get_chats_list(user: user_dependency, db: db_dependency):
-    chats = await check_chat_history(user,db)
+    chats = await check_chat_history(user, db)
     chats_list = [ChatRead.get_first_chat_message(chat) for chat in chats]
 
     return chats_list
@@ -42,15 +42,10 @@ async def get_chat_by_id(user: user_dependency, db: db_dependency, chat_id: int)
 
 
 async def delete_all_chat_history(user: user_dependency, db: db_dependency):
-    query = select(Chat).options(joinedload(Chat.user)).where(
-        Chat.user_id == user.get("id"))
-    result = await db.execute(query)
-    delete_all = result.scalars().all()
-
-    await check_chat_history(user, db)
+    delete_all = await check_chat_history(user, db)
 
     for chat in delete_all:
-        await db.delete(chat)
+        db.delete(chat)
 
     await db.commit()
 
@@ -61,5 +56,5 @@ async def delete_specific_chat(
         chat_id: int
 ):
     chat_to_delete = await check_existing_chat(user, db, chat_id)
-    await db.delete(chat_to_delete)
+    db.delete(chat_to_delete)
     await db.commit()
