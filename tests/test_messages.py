@@ -125,7 +125,7 @@ async def test_get_all_saved_messages(create_chat, ac: AsyncClient):
         headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()) == 2
+    assert len(response.json()) == 1
 
 
 async def test_get_saved_messages_by_id(create_chat, ac: AsyncClient):

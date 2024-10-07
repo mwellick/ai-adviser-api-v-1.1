@@ -152,20 +152,6 @@ async def save_or_unsafe_specific_message(
 
 
 async def get_saved_messages_list(user: user_dependency, db: db_dependency):
-    query = select(Message).options(joinedload(Message.chat)).join(Chat).where(
-        Chat.user_id == user.get("id")
-    ).where(Message.is_saved == True)
-
-    query_result = await db.execute(query)
-    saved_messages = query_result.scalars().all()
-
-    if saved_messages:
-        return [
-            MessageRead.model_validate(
-                saved, from_attributes=True
-            ) for saved in saved_messages
-        ]
-
     saved_message_query = select(SavedMessages).where(
         SavedMessages.user_id == user.get("id")
     )

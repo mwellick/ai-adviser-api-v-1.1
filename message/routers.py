@@ -74,7 +74,7 @@ async def create_message(
     return response
 
 
-@messages_router.get("/messages/saved", response_model=list[Union[MessageRead, SavedMessageRead]],
+@messages_router.get("/messages/saved", response_model=list[SavedMessageRead],
                      status_code=status.HTTP_200_OK)
 async def get_all_saved_messages(user: user_dependency, db: db_dependency):
     saved_chats = await get_saved_messages_list(user, db)
