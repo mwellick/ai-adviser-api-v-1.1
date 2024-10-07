@@ -1,8 +1,10 @@
-from sqlalchemy import select, desc
-from sqlalchemy.orm import joinedload, selectinload
+from typing import Optional
+from starlette import status
+from fastapi import HTTPException, Depends
+from sqlalchemy import select
 from dependencies import db_dependency, user_dependency
 from database.models import Chat
-from .schemas import ChatCreate, ChatRead
+from .schemas import ChatCreate, ChatRead, GuestChatCreate
 from .constraints import (
     validate_create_chat_with_available_theme,
     check_chat_history,
@@ -10,7 +12,7 @@ from .constraints import (
 )
 
 
-async def chat_create(db: db_dependency, chat: ChatCreate):
+async def guest_chat_create(db: db_dependency, chat: GuestChatCreate):
     await validate_create_chat_with_available_theme(db, chat)
 
     if chat.user_id is None:
@@ -20,9 +22,13 @@ async def chat_create(db: db_dependency, chat: ChatCreate):
         )
         return create_chat
 
+
+async def chat_create(db: db_dependency, user: user_dependency, chat: ChatCreate):
+    await validate_create_chat_with_available_theme(db, chat)
+
     create_chat = Chat(
         theme_id=chat.theme_id,
-        user_id=chat.user_id
+        user_id=user.get("id")
     )
     db.add(create_chat)
     await db.commit()
@@ -42,12 +48,18 @@ async def get_chat_by_id(user: user_dependency, db: db_dependency, chat_id: int)
 
 
 async def delete_all_chat_history(user: user_dependency, db: db_dependency):
-    delete_all = await check_chat_history(user, db)
+    query = select(Chat).where(
+        Chat.user_id == user.get("id"))
+    result = await db.execute(query)
+    delete_all = result.scalars().all()
+
+    await check_chat_history(user, db)
 
     for chat in delete_all:
-        db.delete(chat)
+        await db.delete(chat)
 
     await db.commit()
+    return delete_all
 
 
 async def delete_specific_chat(
@@ -55,6 +67,16 @@ async def delete_specific_chat(
         db: db_dependency,
         chat_id: int
 ):
-    chat_to_delete = await check_existing_chat(user, db, chat_id)
-    db.delete(chat_to_delete)
+    await check_existing_chat(user, db, chat_id)
+
+    query = select(Chat).where(
+        Chat.user_id == user.get("id")
+    ).where(Chat.id == chat_id)
+
+    result = await db.execute(query)
+
+    chat_to_delete = result.scalars().first()
+    await db.delete(chat_to_delete)
     await db.commit()
+
+    return chat_to_delete

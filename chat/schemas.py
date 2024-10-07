@@ -4,15 +4,19 @@ from pydantic import BaseModel
 from message.schemas import MessageRead
 
 
+class GuestChatCreate(BaseModel):
+    user_id: None
+    theme_id: int
+
+
 class ChatCreate(BaseModel):
     theme_id: int
-    user_id: Optional[int] = None  # user or guest
 
 
 class ChatCreated(BaseModel):
     id: int
     theme_id: int
-    user_id: Optional[int] = None  # user or guest
+    user_id: int
     created_at: datetime
 
 

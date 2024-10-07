@@ -1,18 +1,17 @@
 import random
-from typing import Union
-
-from fastapi import APIRouter, Path, Request, Response
+from fastapi import APIRouter, Path, Response
 from starlette import status
 from dependencies import db_dependency, user_dependency
 from message.utils import set_cookie
 from .crud import (
+    guest_chat_create,
     chat_create,
     get_chats_list,
     delete_specific_chat,
     delete_all_chat_history,
     get_chat_by_id
 )
-from .schemas import ChatCreate, ChatRead, RetrieveChat, ChatCreated, GuestChatCreated
+from .schemas import ChatCreate, ChatRead, RetrieveChat, ChatCreated, GuestChatCreated, GuestChatCreate
 
 chats_router = APIRouter(
     prefix="/chats",
@@ -20,10 +19,10 @@ chats_router = APIRouter(
 )
 
 
-@chats_router.post("/create", response_model=Union[ChatCreated, GuestChatCreated],
+@chats_router.post("/guest/create", response_model=GuestChatCreated,
                    status_code=status.HTTP_201_CREATED)
-async def create_chat(db: db_dependency, response: Response, chat: ChatCreate):
-    chat_instance = await chat_create(db, chat)
+async def create_guest_chat(db: db_dependency, response: Response, chat: GuestChatCreate):
+    chat_instance = await guest_chat_create(db, chat)
 
     if chat.user_id is None:
         chat_id = random.randint(1, 100)
@@ -35,6 +34,13 @@ async def create_chat(db: db_dependency, response: Response, chat: ChatCreate):
         return GuestChatCreated(id=chat_id)
 
     return chat_instance
+
+
+@chats_router.post("/create", response_model=ChatCreated,
+                   status_code=status.HTTP_201_CREATED)
+async def create_chat(db: db_dependency, user: user_dependency, chat: ChatCreate):
+    chat = await chat_create(db, user, chat)
+    return chat
 
 
 @chats_router.get("/", response_model=list[ChatRead], status_code=status.HTTP_200_OK)
@@ -57,8 +63,6 @@ async def delete_all_chats(user: user_dependency, db: db_dependency):
     return {"detail": "All chats were successfully deleted"}
 
 
-@chats_router.delete("/{chat_id}/delete", status_code=status.HTTP_200_OK)
+@chats_router.delete("/{chat_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_chat(user: user_dependency, db: db_dependency, chat_id: int = Path(gt=0)):
-    chat_to_delete = await delete_specific_chat(user, db, chat_id)
-    if not chat_to_delete:
-        return {"detail": "Chat not found"}
+    await delete_specific_chat(user, db, chat_id)

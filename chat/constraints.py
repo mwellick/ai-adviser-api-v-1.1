@@ -1,15 +1,17 @@
+from typing import Union
+
 from fastapi import HTTPException
 from sqlalchemy import select, desc
 from sqlalchemy.orm import joinedload, selectinload
 from starlette import status
 from dependencies import db_dependency, user_dependency
 from database.models import Chat, Theme
-from .schemas import ChatCreate
+from .schemas import ChatCreate, GuestChatCreate
 
 
 async def validate_create_chat_with_available_theme(
         db: db_dependency,
-        chat: ChatCreate
+        chat: Union[ChatCreate, GuestChatCreate]
 ):
     query = select(Theme).where(Theme.id == chat.theme_id)
     result = await db.execute(query)
