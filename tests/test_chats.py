@@ -39,14 +39,13 @@ async def test_create_guest_chat(create_theme, ac: AsyncClient):
     assert response.status_code == status.HTTP_201_CREATED
 
 
+
 async def test_create_user_chat(create_chat, create_user, create_theme, ac: AsyncClient):
     chat_id, token = create_chat
 
     request_data = {
         "theme_id": create_theme,
-        "user_id": create_user
     }
-    assert request_data.get("user_id") == 1
     assert request_data.get("theme_id") == 1
 
     response = await ac.post(

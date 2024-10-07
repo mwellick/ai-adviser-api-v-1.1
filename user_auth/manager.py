@@ -15,8 +15,6 @@ from dependencies import db_dependency, user_dependency
 
 load_dotenv()
 
-
-
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 ALGORITHM = os.environ.get("JWT_ALGORITHM")
 
@@ -66,5 +64,3 @@ async def save_blacklist_token(
     )
     db.add(blacklist_token)
     await db.commit()
-
-

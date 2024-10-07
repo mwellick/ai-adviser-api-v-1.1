@@ -66,12 +66,13 @@ async def test_create_guest_message_and_ai_response(ac: AsyncClient):
     await db.commit()
 
     chat_form_data = {
+        "user_id": None,
         "theme_id": theme.id,
-        "user_id": None
+
     }
 
     response = await ac.post(
-        "/chats/create", json=chat_form_data
+        "/chats/guest/create", json=chat_form_data
     )
 
     cookies = response.cookies.get("guest_chat_data")
