@@ -2,9 +2,8 @@ from fastapi import HTTPException
 from starlette import status
 from datetime import datetime
 from sqlalchemy import select, and_, desc
-from sqlalchemy.orm import joinedload
 from dependencies import db_dependency, user_dependency
-from database.models import Message, Chat, SavedMessages
+from database.models import Message, SavedMessages
 from chat.constraints import check_existing_chat
 from .constraints import (
     check_saved_messages_history,
@@ -149,6 +148,7 @@ async def save_or_unsafe_specific_message(
                     message.content,
                     False
                 )
+        return previous_message, message
 
 
 async def get_saved_messages_list(user: user_dependency, db: db_dependency):

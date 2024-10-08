@@ -1,6 +1,3 @@
-from typing import Optional
-from starlette import status
-from fastapi import HTTPException, Depends
 from sqlalchemy import select
 from dependencies import db_dependency, user_dependency
 from database.models import Chat

@@ -108,11 +108,9 @@ async def test_save_unsave_message(create_chat, ac: AsyncClient):
     await create_message(ac, token, chat_id)
     msg_save = await save_or_unsave_message(ac, chat_id, 1, True, token)
     assert msg_save.status_code == status.HTTP_200_OK
-    assert msg_save.json().get("detail") == "Message is successfully saved"
 
     msg_unsave = await save_or_unsave_message(ac, chat_id, 1, False, token)
     assert msg_unsave.status_code == status.HTTP_200_OK
-    assert msg_unsave.json().get("detail") == "Message is successfully unsaved"
 
 
 async def test_get_all_saved_messages(create_chat, ac: AsyncClient):

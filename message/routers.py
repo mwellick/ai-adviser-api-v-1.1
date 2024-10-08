@@ -12,7 +12,6 @@ from .crud import (
 )
 from .schemas import MessageCreate, MessageRead, SavedMessageRead
 from dotenv import load_dotenv
-from typing import Union
 from .utils import generate_guest_response, set_cookie, get_cookie
 
 load_dotenv()
@@ -74,14 +73,21 @@ async def create_message(
     return response
 
 
-@messages_router.get("/messages/saved", response_model=list[SavedMessageRead],
-                     status_code=status.HTTP_200_OK)
+@messages_router.get(
+    "/messages/saved",
+    response_model=list[SavedMessageRead],
+    status_code=status.HTTP_200_OK
+)
 async def get_all_saved_messages(user: user_dependency, db: db_dependency):
     saved_chats = await get_saved_messages_list(user, db)
     return saved_chats
 
 
-@messages_router.get("/{chat_id}/message/{message_id}/", status_code=status.HTTP_200_OK)
+@messages_router.get(
+    "/{chat_id}/message/{message_id}/",
+    status_code=status.HTTP_200_OK,
+    response_model=list[MessageRead]
+)
 async def save_unsave_specific_message(
         user: user_dependency,
         db: db_dependency,
@@ -89,11 +95,14 @@ async def save_unsave_specific_message(
         message_id: int = Path(gt=0),
         save: bool = Query(True)
 ):
-    await save_or_unsafe_specific_message(user, save, db, chat_id, message_id)  # TODO
-    return {"detail": f"Message is successfully {'saved' if save else 'unsaved'}"}
+    return await save_or_unsafe_specific_message(user, save, db, chat_id, message_id)
 
 
-@messages_router.get("/saved/{saved_message_id}", response_model=SavedMessageRead, status_code=status.HTTP_200_OK)
+@messages_router.get(
+    "/saved/{saved_message_id}",
+    response_model=SavedMessageRead,
+    status_code=status.HTTP_200_OK
+)
 async def retrieve_saved_message(
         user: user_dependency,
         db: db_dependency,
