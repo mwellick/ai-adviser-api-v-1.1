@@ -21,7 +21,7 @@ async def get_all_themes(db: db_dependency):
     return await get_themes_list(db)
 
 
-@themes_router.post("/create", status_code=status.HTTP_201_CREATED)
+@themes_router.post("/create/", status_code=status.HTTP_201_CREATED)
 async def create_theme(
         db: db_dependency,
         user: user_dependency,
@@ -36,7 +36,7 @@ async def create_theme(
     return theme
 
 
-@themes_router.delete("/{theme_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
+@themes_router.delete("/{theme_id}/delete/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_theme(
         db: db_dependency,
         user: user_dependency,

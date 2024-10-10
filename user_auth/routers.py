@@ -46,26 +46,26 @@ async def register_user(
     return await create_user(db, create_user_request)
 
 
-@router.get("/google/login")
+@router.get("/google/login/")
 async def google_login():
     return {
         "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URL}&scope=openid%20profile%20email&access_type=offline"
     }
 
 
-@router.get("/auth/google")
+@router.get("/auth/google/")
 async def auth_google(code: str, db: db_dependency):
     return await google_auth(code, db)
 
 
-@router.post("/user/token", status_code=status.HTTP_200_OK)
+@router.post("/user/token/", status_code=status.HTTP_200_OK)
 async def login_user(
         form_data: UserLogin,
         db: db_dependency):
     return await user_login(form_data, db)
 
 
-@router.post("/user/login", status_code=status.HTTP_200_OK)
+@router.post("/user/login/", status_code=status.HTTP_200_OK)
 async def login_user_o2auth_form(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         db: db_dependency
@@ -73,12 +73,12 @@ async def login_user_o2auth_form(
     return await user_o2auth_login(form_data, db)
 
 
-@router.get("/user/me")
+@router.get("/user/me/")
 async def get_actual_user(user: user_dependency):
     return UserRead(**user)
 
 
-@router.post("/forgot_password", status_code=status.HTTP_200_OK)
+@router.post("/forgot_password/", status_code=status.HTTP_200_OK)
 async def forgot_password(request: ForgotPassword, db: db_dependency):
     await get_existing_user(request.email, db)
     code = str(uuid.uuid1())
@@ -90,13 +90,13 @@ async def forgot_password(request: ForgotPassword, db: db_dependency):
     }
 
 
-@router.patch("/reset_password")
+@router.patch("/reset_password/")
 async def reset_password(request: ResetPassword, db: db_dependency):
     await password_reset(request.reset_password_code, request, db)
     return {"detail": "Password has been reset successfully"}
 
 
-@router.get("/user/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.get("/user/logout/", status_code=status.HTTP_204_NO_CONTENT)
 async def logout_user(
         token: Annotated[str, Depends(get_user_token)],
         user: user_dependency,

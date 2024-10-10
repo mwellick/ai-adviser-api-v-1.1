@@ -23,7 +23,7 @@ messages_router = APIRouter(
 MAX_MESSAGES = 5
 
 
-@messages_router.post("/chats/{chat_id}/guest/message", status_code=status.HTTP_201_CREATED)
+@messages_router.post("/chats/{chat_id}/guest/message/", status_code=status.HTTP_201_CREATED)
 async def create_message_by_guest(
         db: db_dependency,
         request: Request,
@@ -61,7 +61,7 @@ async def create_message_by_guest(
     return response_message
 
 
-@messages_router.post("/chats/{chat_id}/message", status_code=status.HTTP_201_CREATED)
+@messages_router.post("/chats/{chat_id}/message/", status_code=status.HTTP_201_CREATED)
 async def create_message(
         db: db_dependency,
         user: user_dependency,
@@ -74,7 +74,7 @@ async def create_message(
 
 
 @messages_router.get(
-    "/messages/saved",
+    "/messages/saved/",
     response_model=list[SavedMessageRead],
     status_code=status.HTTP_200_OK
 )
@@ -95,11 +95,12 @@ async def save_unsave_specific_message(
         message_id: int = Path(gt=0),
         save: bool = Query(True)
 ):
-    return await save_or_unsafe_specific_message(user, save, db, chat_id, message_id)
+    result = await save_or_unsafe_specific_message(user, save, db, chat_id, message_id)
+    return result if result else []
 
 
 @messages_router.get(
-    "/saved/{saved_message_id}",
+    "/saved/{saved_message_id}/",
     response_model=SavedMessageRead,
     status_code=status.HTTP_200_OK
 )
@@ -111,7 +112,7 @@ async def retrieve_saved_message(
     return await get_specific_saved_message(user, db, saved_message_id)
 
 
-@messages_router.delete("/saved/{saved_message_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
+@messages_router.delete("/saved/{saved_message_id}/delete/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_saved_message(
         user: user_dependency,
         db: db_dependency,
@@ -120,7 +121,7 @@ async def delete_saved_message(
     return await delete_specific_saved_message(user, db, saved_message_id)
 
 
-@messages_router.delete("/saved/delete", status_code=status.HTTP_204_NO_CONTENT)
+@messages_router.delete("/saved/delete/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_all_saved_messages(
         user: user_dependency,
         db: db_dependency

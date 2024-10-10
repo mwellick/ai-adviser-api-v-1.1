@@ -14,7 +14,7 @@ async def create_chat(create_theme, create_user, ac: AsyncClient):
         "password": "String123"
     }
     login = await ac.post(
-        "/user/token", data=form_data
+        "/user/token/", data=form_data
     )
     token = login.json().get("access_token")
     chat = Chat(
@@ -34,7 +34,7 @@ async def test_create_guest_chat(create_theme, ac: AsyncClient):
         "user_id": None
     }
     response = await ac.post(
-        "/chats/create", json=request_data
+        "/chats/create/", json=request_data
     )
     assert response.status_code == status.HTTP_201_CREATED
 
@@ -49,7 +49,7 @@ async def test_create_user_chat(create_chat, create_user, create_theme, ac: Asyn
     assert request_data.get("theme_id") == 1
 
     response = await ac.post(
-        "/chats/create",
+        "/chats/create/",
         json=request_data,
         headers={"Authorization": f"Bearer {token}"}
     )
@@ -69,7 +69,7 @@ async def test_get_list_of_chats(create_chat, ac: AsyncClient):
 async def test_get_chat_by_id(create_chat, ac: AsyncClient):
     chat_id, token = create_chat
     response = await ac.get(
-        "/chats/1",
+        "/chats/1/",
         headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_200_OK
@@ -80,7 +80,7 @@ async def test_get_chat_by_id(create_chat, ac: AsyncClient):
 async def test_delete_chat(create_chat, ac: AsyncClient):
     chat_id, token = create_chat
     response = await ac.delete(
-        "/chats/1/delete",
+        "/chats/1/delete/",
         headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -92,5 +92,4 @@ async def test_delete_all_chats(create_chat, ac: AsyncClient):
         "/chats/delete/",
         headers={"Authorization": f"Bearer {token}"}
     )
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json().get("detail") == "All chats were successfully deleted"
+    assert response.status_code == status.HTTP_204_NO_CONTENT

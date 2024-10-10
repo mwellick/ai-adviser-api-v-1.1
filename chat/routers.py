@@ -19,7 +19,7 @@ chats_router = APIRouter(
 )
 
 
-@chats_router.post("/guest/create", response_model=GuestChatCreated,
+@chats_router.post("/guest/create/", response_model=GuestChatCreated,
                    status_code=status.HTTP_201_CREATED)
 async def create_guest_chat(db: db_dependency, response: Response, chat: GuestChatCreate):
     chat_instance = await guest_chat_create(db, chat)
@@ -36,7 +36,7 @@ async def create_guest_chat(db: db_dependency, response: Response, chat: GuestCh
     return chat_instance
 
 
-@chats_router.post("/create", response_model=ChatCreated,
+@chats_router.post("/create/", response_model=ChatCreated,
                    status_code=status.HTTP_201_CREATED)
 async def create_chat(db: db_dependency, user: user_dependency, chat: ChatCreate):
     chat = await chat_create(db, user, chat)
@@ -49,20 +49,18 @@ async def get_all_chats(user: user_dependency, db: db_dependency):
     return chats
 
 
-@chats_router.get("/{chat_id}", response_model=RetrieveChat, status_code=status.HTTP_200_OK)
+@chats_router.get("/{chat_id}/", response_model=RetrieveChat, status_code=status.HTTP_200_OK)
 async def retrieve_chat(user: user_dependency, db: db_dependency, chat_id: int = Path(gt=0)):
     chat = await get_chat_by_id(user, db, chat_id)
     return chat
 
 
-@chats_router.delete("/delete/", status_code=status.HTTP_200_OK)
+@chats_router.delete("/delete/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_all_chats(user: user_dependency, db: db_dependency):
-    chats_to_delete = await delete_all_chat_history(user, db)
-    if not chats_to_delete:
-        return {"detail": "Nothing found to delete"}
-    return {"detail": "All chats were successfully deleted"}
+    await delete_all_chat_history(user, db)
 
 
-@chats_router.delete("/{chat_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
+
+@chats_router.delete("/{chat_id}/delete/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_chat(user: user_dependency, db: db_dependency, chat_id: int = Path(gt=0)):
     await delete_specific_chat(user, db, chat_id)

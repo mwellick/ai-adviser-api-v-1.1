@@ -42,14 +42,14 @@ async def test_login_user(ac: AsyncClient):
         "password": "String123"
     }
     response = await ac.post(
-        "/user/token", json=form_data
+        "/user/token/", json=form_data
     )
     assert response.status_code == status.HTTP_200_OK
 
 
 async def test_forgot_password(create_user, ac: AsyncClient):
     response = await ac.post(
-        "/forgot_password",
+        "/forgot_password/",
         json={
             "email": "user@example.com"
         }
@@ -60,7 +60,7 @@ async def test_forgot_password(create_user, ac: AsyncClient):
 
 async def test_reset_password(create_user, ac: AsyncClient):
     response = await ac.post(
-        "/forgot_password",
+        "/forgot_password/",
         json={
             "email": "user@example.com"
         }
@@ -74,7 +74,7 @@ async def test_reset_password(create_user, ac: AsyncClient):
         break
 
     reset_password = await ac.patch(
-        "/reset_password",
+        "/reset_password/",
         json={
             "reset_password_code": f"{code}",
             "new_password": "Qwerty12345",
@@ -97,11 +97,11 @@ async def test_logout_user(ac: AsyncClient):
         "password": "String123"
     }
     token = await ac.post(
-        "/user/token", data=form_data
+        "/user/token/", data=form_data
     )
     token = token.json().get("access_token")
     response = await ac.get(
-        "/user/logout",
+        "/user/logout/",
         headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT

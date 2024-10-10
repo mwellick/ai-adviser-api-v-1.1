@@ -15,7 +15,7 @@ async def create_message(
 ):
     request_data = {"content": content, "chat_id": chat_id}
     return await ac.post(
-        f"/chats/{chat_id}/message",
+        f"/chats/{chat_id}/message/",
         json=request_data,
         headers={"Authorization": f"Bearer {token}"}
     )
@@ -47,7 +47,7 @@ async def test_create_user_message_and_ai_response(
     }
     assert request_data.get("chat_id") == 1
     response = await ac.post(
-        "/chats/1/message",
+        "/chats/1/message/",
         json=request_data,
         headers={"Authorization": f"Bearer {token}"}
     )
@@ -72,7 +72,7 @@ async def test_create_guest_message_and_ai_response(ac: AsyncClient):
     }
 
     response = await ac.post(
-        "/chats/guest/create", json=chat_form_data
+        "/chats/guest/create/", json=chat_form_data
     )
 
     cookies = response.cookies.get("guest_chat_data")
@@ -96,7 +96,7 @@ async def test_create_guest_message_and_ai_response(ac: AsyncClient):
     }
 
     ai_response = await ac.post(
-        f"/chats/{chat_id}/guest/message",
+        f"/chats/{chat_id}/guest/message/",
         json=message_form_data
     )
     assert ai_response.status_code == status.HTTP_201_CREATED, ai_response.json()
@@ -120,7 +120,7 @@ async def test_get_all_saved_messages(create_chat, ac: AsyncClient):
 
     assert msg_save.status_code == status.HTTP_200_OK
     response = await ac.get(
-        "/messages/saved",
+        "/messages/saved/",
         headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_200_OK
@@ -134,13 +134,13 @@ async def test_get_saved_messages_by_id(create_chat, ac: AsyncClient):
 
     assert msg_save.status_code == status.HTTP_200_OK
     response = await ac.get(
-        f"/saved/1",
+        f"/saved/1/",
         headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data.get("id") == 1
-    assert len(response.json()) == 3
+    assert len(response.json()) == 4
 
 
 async def test_delete_saved_message(create_chat, ac: AsyncClient):
@@ -149,7 +149,7 @@ async def test_delete_saved_message(create_chat, ac: AsyncClient):
     msg_save = await save_or_unsave_message(ac, chat_id, 2, True, token)
     assert msg_save.status_code == status.HTTP_200_OK
     response = await ac.delete(
-        "/saved/1/delete",
+        "/saved/1/delete/",
         headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -161,7 +161,7 @@ async def test_delete_all_saved_messages(create_chat, ac: AsyncClient):
     msg_save = await save_or_unsave_message(ac, chat_id, 2, True, token)
     assert msg_save.status_code == status.HTTP_200_OK
     response = await ac.delete(
-        "/saved/delete",
+        "/saved/delete/",
         headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -172,15 +172,15 @@ async def test_still_saved_message_if_chat_deleted(create_chat, ac: AsyncClient)
     await create_message(ac, token, chat_id)
     await save_or_unsave_message(ac, chat_id, 2, True, token)
     chat_response = await ac.delete(
-        "/chats/1/delete",
+        "/chats/1/delete/",
         headers={"Authorization": f"Bearer {token}"}
     )
     assert chat_response.status_code == status.HTTP_204_NO_CONTENT
     response = await ac.get(
-        f"/saved/1",
+        f"/saved/1/",
         headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data.get("id") == 1
-    assert len(response.json()) == 3
+    assert len(response.json()) == 4
