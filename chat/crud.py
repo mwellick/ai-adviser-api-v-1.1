@@ -1,6 +1,6 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 from dependencies import db_dependency, user_dependency
-from database.models import Chat
+from database.models import Chat, SavedMessages
 from .schemas import ChatCreate, ChatRead, GuestChatCreate
 from .constraints import (
     validate_create_chat_with_available_theme,
@@ -53,6 +53,11 @@ async def delete_all_chat_history(user: user_dependency, db: db_dependency):
     await check_chat_history(user, db)
 
     for chat in delete_all:
+        await db.execute(
+            update(SavedMessages)
+            .where(SavedMessages.chat_id == chat.id)
+            .values(chat_id=None)
+        )
         await db.delete(chat)
 
     await db.commit()
@@ -73,6 +78,13 @@ async def delete_specific_chat(
     result = await db.execute(query)
 
     chat_to_delete = result.scalars().first()
+
+    await db.execute(
+        update(SavedMessages)
+        .where(SavedMessages.chat_id == chat_to_delete.id)
+        .values(chat_id=None)
+    )
+
     await db.delete(chat_to_delete)
     await db.commit()
 

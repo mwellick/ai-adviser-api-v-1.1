@@ -11,7 +11,7 @@ from .constraints import (
     check_db_saved_messages,
     check_existing_message
 )
-from .schemas import MessageCreate, MessageRead, SavedMessageRead
+from .schemas import MessageCreate, SavedMessageRead
 from .utils import generate_response
 
 
@@ -73,6 +73,7 @@ async def save_of_delete_from_db(
         user: user_dependency,
         user_request: str,
         ai_response: str,
+        chat_id: int,
         save: bool
 
 ):
@@ -80,7 +81,8 @@ async def save_of_delete_from_db(
         save_to_db = SavedMessages(
             user_request=user_request,
             ai_response=ai_response,
-            user_id=user.get("id")
+            user_id=user.get("id"),
+            chat_id=chat_id
         )
         db.add(save_to_db)
 
@@ -137,6 +139,7 @@ async def save_or_unsafe_specific_message(
                     user,
                     previous_message.content,
                     message.content,
+                    chat_id,
                     True
                 )
         elif save is False:
@@ -146,6 +149,7 @@ async def save_or_unsafe_specific_message(
                     user,
                     previous_message.content,
                     message.content,
+                    chat_id,
                     False
                 )
         return previous_message, message
