@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import func, ForeignKey, String, Text, DateTime
+from sqlalchemy import ForeignKey, DateTime, func, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .engine import Base
 
@@ -57,6 +57,7 @@ class SavedMessages(Base):
     ai_response: Mapped[str] = mapped_column(Text, nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     user: Mapped["User"] = relationship("User", back_populates="saved_messages")
+    chat_id: Mapped[int] = mapped_column(nullable=True)
 
 
 class ResetPasswordCodes(Base):
