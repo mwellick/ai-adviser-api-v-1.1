@@ -58,6 +58,8 @@ class SavedMessages(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     user: Mapped["User"] = relationship("User", back_populates="saved_messages")
     chat_id: Mapped[int] = mapped_column(nullable=True)
+    user_message_id: Mapped[int] = mapped_column()
+    ai_response_id: Mapped[int] = mapped_column()
 
 
 class ResetPasswordCodes(Base):
