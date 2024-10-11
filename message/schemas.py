@@ -21,6 +21,8 @@ class SavedMessageRead(BaseModel):
     user_request: str
     ai_response: str
     chat_id: int | None
+    user_message_id: int
+    ai_response_id: int
 
     class Config:
         from_attributes = True

@@ -140,7 +140,7 @@ async def test_get_saved_messages_by_id(create_chat, ac: AsyncClient):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data.get("id") == 1
-    assert len(response.json()) == 4
+    assert len(response.json()) == 6
 
 
 async def test_delete_saved_message(create_chat, ac: AsyncClient):
@@ -183,4 +183,4 @@ async def test_still_saved_message_if_chat_deleted(create_chat, ac: AsyncClient)
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data.get("id") == 1
-    assert len(response.json()) == 4
+    assert len(response.json()) == 6

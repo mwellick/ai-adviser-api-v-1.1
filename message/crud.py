@@ -43,7 +43,7 @@ async def get_previous_message(db: db_dependency, message_created_at: datetime, 
         and_(
             Message.chat_id == chat_id,
             Message.created_at < message_created_at,
-            Message.is_ai_response == False  #
+            Message.is_ai_response == False
         )
     ).order_by(desc(Message.created_at))
 
@@ -74,6 +74,8 @@ async def save_of_delete_from_db(
         user_request: str,
         ai_response: str,
         chat_id: int,
+        user_message_id: int,
+        ai_response_id: int,
         save: bool
 
 ):
@@ -82,7 +84,9 @@ async def save_of_delete_from_db(
             user_request=user_request,
             ai_response=ai_response,
             user_id=user.get("id"),
-            chat_id=chat_id
+            chat_id=chat_id,
+            user_message_id=user_message_id,
+            ai_response_id=ai_response_id
         )
         db.add(save_to_db)
 
@@ -140,6 +144,8 @@ async def save_or_unsafe_specific_message(
                     previous_message.content,
                     message.content,
                     chat_id,
+                    previous_message.id,
+                    message.id,
                     True
                 )
         elif save is False:
@@ -150,6 +156,8 @@ async def save_or_unsafe_specific_message(
                     previous_message.content,
                     message.content,
                     chat_id,
+                    previous_message.id,
+                    message.id,
                     False
                 )
         return previous_message, message
