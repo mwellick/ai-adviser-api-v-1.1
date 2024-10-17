@@ -1,6 +1,5 @@
 from fastapi import HTTPException
 from datetime import datetime
-
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select, or_, desc
 from starlette import status
@@ -89,4 +88,5 @@ async def check_code_expired(code: str, db: db_dependency):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Your reset code is expired or does not exist"
         )
+
     return reset_code

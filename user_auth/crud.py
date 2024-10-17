@@ -1,11 +1,14 @@
 import os
+from aiosmtplib import SMTP
 import requests
+import smtplib
 from dotenv import load_dotenv
 from datetime import datetime
 from datetime import timedelta
 from typing import Annotated
 from starlette import status
 from sqlalchemy import select
+from email.message import EmailMessage
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from dependencies import db_dependency, user_dependency
@@ -27,11 +30,16 @@ from .constraints import (
 
 load_dotenv()
 
-CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 AUTH_URL = os.environ.get("AUTH_URL")
 CLIENT_ID = os.environ.get("CLIENT_ID")
 TOKEN_URL = os.environ.get("TOKEN_URL")
+CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 REDIRECT_URL = os.environ.get("REDIRECT_URL")
+
+MAIL_HOST = os.environ.get("MAIL_HOST")
+MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
+MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
+MAIL_PORT = int(os.environ.get("MAIL_PORT"))
 
 
 async def create_user(
@@ -77,6 +85,47 @@ async def user_o2auth_login(
 async def get_existing_user(email: str, db: db_dependency):
     user_email = await validate_user_exists(email, db)
     return user_email
+
+
+async def send_mail(email: str, code: str):
+    smtp_email = MAIL_USERNAME
+    message = EmailMessage()
+    message["From"] = smtp_email
+    message["To"] = email
+    message["Subject"] = "Password reset code"
+
+    body = f"""
+    <html>
+        <body>
+            <p>Hello,</p>
+            <p>You requested a password reset. Use the following code to reset your password:</p>
+            <h3 style="color: black; font-weight: bold;">{code}</h3>  
+            <p>The code will expire in 10 minutes. Please do not share this code with anyone.</p>
+            <p>You can reset your password by visiting the following link:</p>
+            <a href="http://127.0.0.1:8000/docs#/auth/reset_password_reset_password__patch"
+               style="color: #3498db; text-decoration: none; font-weight: bold;">
+               http://127.0.0.1:8000/docs#/auth/reset_password_reset_password__patch
+            </a>
+            <br><br>
+            <p>Best regards,
+            <br>Elli.Ai Team</p>
+        </body>
+    </html>
+    """
+    message.set_content(body, subtype="html")
+
+    try:
+        async with SMTP(hostname=MAIL_HOST, port=MAIL_PORT) as smtp:
+            await smtp.login(MAIL_USERNAME, MAIL_PASSWORD)
+            await smtp.send_message(message)
+        return {
+            "detail": "A list with detailed information was sent into your email address"
+        }
+    except Exception as e:
+        raise HTTPException(
+            detail=f"An error occurred while sending you a message.{e}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 async def create_reset_code(email: str, code: str, db: db_dependency):
@@ -159,8 +208,9 @@ async def google_auth(code: str, db: db_dependency):
         )
         db.add(user_create)
         await db.commit()
+        await db.refresh(user_create)
 
-        token = create_access_token(user_create.email, user.id, timedelta(days=1))
+        token = create_access_token(user_create.email, user_create.id, timedelta(days=1))
         return {"access_token": token, "type": "bearer"}
 
     token = create_access_token(user.email, user.id, timedelta(days=1))

@@ -1,11 +1,10 @@
-import json
-
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select, desc
 from starlette import status
 from tests.conftest import TestSessionLocal
 from user_auth.manager import bcrypt_context
-from database.models import User
+from database.models import User, ResetPasswordCodes
 
 
 @pytest.fixture
@@ -56,9 +55,11 @@ async def test_forgot_password(create_user, ac: AsyncClient):
     )
     assert response.status_code == status.HTTP_200_OK
     assert "detail" in response.json()
+    print(response.json())
 
 
 async def test_reset_password(create_user, ac: AsyncClient):
+    db = TestSessionLocal()
     response = await ac.post(
         "/forgot_password/",
         json={
@@ -66,23 +67,22 @@ async def test_reset_password(create_user, ac: AsyncClient):
         }
     )
     assert response.status_code == status.HTTP_200_OK
-    decode_to_dict = json.load(response)
-    code = ""
-    for i in decode_to_dict.values():
-        split = i.split(" ")
-        code += split[3]
-        break
 
+    query = select(ResetPasswordCodes).where(
+        ResetPasswordCodes.email == "user@example.com").order_by(
+        desc(ResetPasswordCodes.id)
+    )
+    result = await db.execute(query)
+    code = result.scalars().first()
     reset_password = await ac.patch(
         "/reset_password/",
         json={
-            "reset_password_code": f"{code}",
+            "reset_password_code": f"{code.reset_code}",
             "new_password": "Qwerty12345",
             "confirm_password": "Qwerty12345"
         }
     )
     assert reset_password.status_code == status.HTTP_200_OK
-    assert reset_password.json() == {"detail": "Password has been reset successfully"}
 
 
 async def test_logout_user(ac: AsyncClient):

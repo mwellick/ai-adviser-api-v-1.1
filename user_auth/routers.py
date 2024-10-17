@@ -21,7 +21,7 @@ from .crud import (
     user_logout,
     password_reset,
     get_existing_user,
-    create_reset_code, user_o2auth_login, google_auth
+    create_reset_code, user_o2auth_login, google_auth, send_mail
 )
 from dependencies import db_dependency, user_dependency
 
@@ -37,6 +37,11 @@ TOKEN_URL = os.environ.get("TOKEN_URL")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 REDIRECT_URL = os.environ.get("REDIRECT_URL")
 
+MAIL_HOST = os.environ.get("MAIL_HOST")
+MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
+MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
+MAIL_PORT = os.environ.get("MAIL_HOST")
+
 
 @router.post("/auth/user/", status_code=status.HTTP_201_CREATED)
 async def register_user(
@@ -49,7 +54,10 @@ async def register_user(
 @router.get("/google/login/")
 async def google_login():
     return {
-        "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URL}&scope=openid%20profile%20email&access_type=offline"
+        "url": f"https://accounts.google.com/o/oauth2/auth"
+               f"?response_type=code&client_id={CLIENT_ID}"
+               f"&redirect_uri={REDIRECT_URL}"
+               f"&scope=openid%20profile%20email&access_type=offline"
     }
 
 
@@ -83,14 +91,10 @@ async def forgot_password(request: ForgotPassword, db: db_dependency):
     await get_existing_user(request.email, db)
     code = str(uuid.uuid1())
     await create_reset_code(request.email, code, db)
-    return {
-        "detail": f"Reset password code: {code} \n"
-                  f"This code will be available for 10 minutes."
-                  f"Please,don't share it to anyone."
-    }
+    return await send_mail(request.email, code)
 
 
-@router.patch("/reset_password/")
+@router.patch("/reset_password/", status_code=status.HTTP_200_OK)
 async def reset_password(request: ResetPassword, db: db_dependency):
     await password_reset(request.reset_password_code, request, db)
     return {"detail": "Password has been reset successfully"}
