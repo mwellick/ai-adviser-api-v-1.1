@@ -1,7 +1,6 @@
 import os
 from aiosmtplib import SMTP
 import requests
-import smtplib
 from dotenv import load_dotenv
 from datetime import datetime
 from datetime import timedelta
@@ -100,7 +99,7 @@ async def send_mail(email: str, code: str):
             <p>Hello,</p>
             <p>You requested a password reset. Use the following code to reset your password:</p>
             <h3 style="color: black; font-weight: bold;">{code}</h3>  
-            <p>The code will expire in 10 minutes. Please do not share this code with anyone.</p>
+            <p>This code will expire in 10 minutes. Please do not share this code with anyone.</p>
             <p>You can reset your password by visiting the following link:</p>
             <a href="http://127.0.0.1:8000/docs#/auth/reset_password_reset_password__patch"
                style="color: #3498db; text-decoration: none; font-weight: bold;">
@@ -146,7 +145,6 @@ async def password_reset(code: str, request: ResetPassword, db: db_dependency):
         User.email == reset_code.email)
 
     result = await db.execute(query)
-    await check_code_expired(code, db)
 
     user = result.scalars().first()
 
@@ -156,11 +154,6 @@ async def password_reset(code: str, request: ResetPassword, db: db_dependency):
             detail="User not found"
         )
 
-    if request.new_password != request.confirm_password:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Passwords do not match."
-        )
     user.hashed_password = bcrypt_context.hash(request.new_password)
     reset_code.status = False
     await db.commit()

@@ -78,8 +78,7 @@ async def test_reset_password(create_user, ac: AsyncClient):
         "/reset_password/",
         json={
             "reset_password_code": f"{code.reset_code}",
-            "new_password": "Qwerty12345",
-            "confirm_password": "Qwerty12345"
+            "new_password": "Qwerty12345"
         }
     )
     assert reset_password.status_code == status.HTTP_200_OK

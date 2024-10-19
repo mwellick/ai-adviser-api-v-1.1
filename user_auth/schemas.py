@@ -39,4 +39,3 @@ class ForgotPassword(BaseModel):
 class ResetPassword(BaseModel):
     reset_password_code: str
     new_password: str
-    confirm_password: str
