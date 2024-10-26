@@ -8,8 +8,3 @@ class ThemeRead(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-class ThemeCreate(BaseModel):  # TODO Temporary schema. To delete it when project goes to prod
-    name: str
-    description: str

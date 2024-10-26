@@ -1,6 +1,5 @@
 import os
 import jwt
-import requests
 from fastapi import Depends, HTTPException
 from sqlalchemy import select
 from fastapi.security import OAuth2PasswordBearer

@@ -11,7 +11,14 @@ from .crud import (
     delete_all_chat_history,
     get_chat_by_id
 )
-from .schemas import ChatCreate, ChatRead, RetrieveChat, ChatCreated, GuestChatCreated, GuestChatCreate
+from .schemas import (
+    ChatCreate,
+    ChatRead,
+    RetrieveChat,
+    ChatCreated,
+    GuestChatCreated,
+    GuestChatCreate
+)
 
 chats_router = APIRouter(
     prefix="/chats",
@@ -58,7 +65,6 @@ async def retrieve_chat(user: user_dependency, db: db_dependency, chat_id: int =
 @chats_router.delete("/delete/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_all_chats(user: user_dependency, db: db_dependency):
     await delete_all_chat_history(user, db)
-
 
 
 @chats_router.delete("/{chat_id}/delete/", status_code=status.HTTP_204_NO_CONTENT)
