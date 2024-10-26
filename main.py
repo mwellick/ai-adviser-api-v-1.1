@@ -5,9 +5,9 @@ from chat.routers import chats_router
 from message.routers import messages_router
 from fastapi.middleware.cors import CORSMiddleware
 
-
 app = FastAPI(
-    title="AI Adviser"
+    title="AI Adviser",
+    docs_url="/"
 )
 
 origins = [
@@ -21,7 +21,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 app.include_router(router)
 app.include_router(themes_router)
