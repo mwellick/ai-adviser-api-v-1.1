@@ -11,7 +11,7 @@ app = FastAPI(
 )
 
 origins = [
-    "http://localhost:5173",
+    "https://hotabu4.github.io/adviser_alli",
 ]
 
 app.add_middleware(
