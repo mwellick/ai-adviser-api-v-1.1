@@ -11,15 +11,15 @@ app = FastAPI(
 )
 
 origins = [
-    "https://hotabu4.github.io/adviser_alli",
+    "https://hotabu4.github.io",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.include_router(router)
