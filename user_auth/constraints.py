@@ -20,7 +20,7 @@ async def validate_user_create(db: db_dependency, email: str):
         if user.email == email:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User with this email is already exists"
+                detail="A user with this email address is already exists."
             )
 
     return user
@@ -39,7 +39,7 @@ async def validate_user_login(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Your email address or password is incorrect"
+            detail="The email address or password you entered is incorrect, or the user does not exist."
         )
     return user
 
