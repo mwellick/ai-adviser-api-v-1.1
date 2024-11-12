@@ -62,4 +62,5 @@ async def check_existing_chat(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Chat not found"
         )
+    chat.messages.sort(key=lambda m: m.created_at)
     return chat
