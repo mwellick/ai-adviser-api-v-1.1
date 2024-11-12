@@ -5,7 +5,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.orm import joinedload, selectinload
 from starlette import status
 from dependencies import db_dependency, user_dependency
-from database.models import Chat, Theme
+from database.models import Chat, Theme, Message
 from .schemas import ChatCreate, GuestChatCreate
 
 
@@ -50,8 +50,9 @@ async def check_existing_chat(
         joinedload(Chat.user),
         joinedload(Chat.messages)
     ).where(
-        Chat.user_id == user.get("id")
-    ).where(Chat.id == chat_id)
+        Chat.user_id == user.get("id"),
+        Chat.id == chat_id
+    )
 
     result = await db.execute(query)
 

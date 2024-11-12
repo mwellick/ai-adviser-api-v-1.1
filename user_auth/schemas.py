@@ -10,6 +10,15 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
 
+    @field_validator("email")
+    def validate_email_format(cls, value: str) -> str:
+        allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789."
+
+        if not all(char in allowed_chars for char in value):
+            raise ValueError("Email must contain only Latin letters, digits, and a dot (.)")
+
+        return value
+
     @field_validator("password")
     def validate_password_startswith_upper(cls, value: str) -> str:
         if not value[0].isupper():
