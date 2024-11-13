@@ -12,10 +12,10 @@ class UserCreate(BaseModel):
 
     @field_validator("email")
     def validate_email_format(cls, value: str) -> str:
-        allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789."
+        allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.@_-"
 
         if not all(char in allowed_chars for char in value):
-            raise ValueError("Email must contain only Latin letters, digits, and a dot (.)")
+            raise ValueError("Email must be valid")
 
         return value
 
