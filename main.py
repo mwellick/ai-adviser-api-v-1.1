@@ -11,7 +11,7 @@ app = FastAPI(
 )
 
 origins = [
-    "https://6733aea01a990d00089f0ca9--adviser-elli.netlify.app"
+    "https://673a1462c6cb370008261a64--adviser-elli.netlify.app"
 ]
 
 app.add_middleware(
