@@ -18,7 +18,11 @@ client = AsyncOpenAI(api_key=OPEN_AI_KEY)
 
 
 async def generate_response(db: db_dependency, chat_id: int):
-    query = select(Message).where(Message.chat_id == chat_id).order_by(asc(Message.created_at))
+    query = (
+        select(Message)
+        .where(Message.chat_id == chat_id)
+        .order_by(asc(Message.created_at))
+    )
     result = await db.execute(query)
     all_messages = result.scalars().all()
 
@@ -30,7 +34,7 @@ async def generate_response(db: db_dependency, chat_id: int):
     ai_messages = [
         {
             "role": "system",
-            "content": "You are a helpful assistant. Respond in Markdown format."
+            "content": "You are a helpful assistant. Respond in Markdown format.",
         }
     ]
 
@@ -48,15 +52,13 @@ async def generate_response(db: db_dependency, chat_id: int):
         presence_penalty=1.0,
         top_p=0.8,
         stream=True,
-        messages=ai_messages
+        messages=ai_messages,
     )
 
     processed_response = await process_ai_response(ai_response)
 
     ai_message = Message(
-        content=processed_response,
-        chat_id=chat_id,
-        is_ai_response=True
+        content=processed_response, chat_id=chat_id, is_ai_response=True
     )
     db.add(ai_message)
     await db.commit()
@@ -74,7 +76,7 @@ async def generate_guest_response(db: db_dependency, messages: list):
     ai_messages = [
         {
             "role": "system",
-            "content": "You are a helpful assistant. Respond in Markdown format."
+            "content": "You are a helpful assistant. Respond in Markdown format.",
         }
     ]
 
@@ -83,12 +85,7 @@ async def generate_guest_response(db: db_dependency, messages: list):
         ai_messages.append({"role": role, "content": message["content"]})
 
     if theme is not None:
-        ai_messages.append(
-            {
-                "role": "user",
-                "content": f"Theme: {theme.name}"
-            }
-        )
+        ai_messages.append({"role": "user", "content": f"Theme: {theme.name}"})
     else:
         print("Theme not found!")
 
@@ -100,7 +97,7 @@ async def generate_guest_response(db: db_dependency, messages: list):
         presence_penalty=0.7,
         top_p=0.3,
         stream=True,
-        messages=ai_messages
+        messages=ai_messages,
     )
 
     return await process_ai_response(ai_response)
@@ -136,5 +133,5 @@ async def set_cookie(response: Response, cookie_name: str, data, max_age=0):
         max_age=max_age,
         httponly=True,
         secure=True,
-        samesite="none"
+        samesite="none",
     )

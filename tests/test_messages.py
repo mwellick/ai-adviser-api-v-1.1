@@ -8,48 +8,35 @@ from .test_user_auth import create_user
 
 
 async def create_message(
-        ac: AsyncClient,
-        token: str,
-        chat_id: int,
-        content="Hello world"
+    ac: AsyncClient, token: str, chat_id: int, content="Hello world"
 ):
     request_data = {"content": content, "chat_id": chat_id}
     return await ac.post(
         f"/chats/{chat_id}/message/",
         json=request_data,
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {token}"},
     )
 
 
 async def save_or_unsave_message(
-        ac: AsyncClient,
-        chat_id: int,
-        message_id: int,
-        save: bool,
-        token: str
+    ac: AsyncClient, chat_id: int, message_id: int, save: bool, token: str
 ):
     return await ac.get(
         f"/{chat_id}/message/{message_id}/?save={str(save).lower()}",
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {token}"},
     )
 
 
 async def test_create_user_message_and_ai_response(
-        create_theme,
-        create_chat,
-        create_user,
-        ac: AsyncClient
+    create_theme, create_chat, create_user, ac: AsyncClient
 ):
     chat_id, token = create_chat
-    request_data = {
-        "content": "Hello world",
-        "chat_id": chat_id
-    }
+    request_data = {"content": "Hello world", "chat_id": chat_id}
     assert request_data.get("chat_id") == 1
     response = await ac.post(
         "/chats/1/message/",
         json=request_data,
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json().get("chat_id") == 1
@@ -57,10 +44,7 @@ async def test_create_user_message_and_ai_response(
 
 
 async def test_create_guest_message_and_ai_response(ac: AsyncClient):
-    theme = Theme(
-        name="Test Theme",
-        description="test description"
-    )
+    theme = Theme(name="Test Theme", description="test description")
     db = TestSessionLocal()
     db.add(theme)
     await db.commit()
@@ -68,12 +52,9 @@ async def test_create_guest_message_and_ai_response(ac: AsyncClient):
     chat_form_data = {
         "user_id": None,
         "theme_id": theme.id,
-
     }
 
-    response = await ac.post(
-        "/chats/guest/create/", json=chat_form_data
-    )
+    response = await ac.post("/chats/guest/create/", json=chat_form_data)
 
     cookies = response.cookies.get("guest_chat_data")
     cookies = cookies.replace("054", "").replace("\\", "")
@@ -92,12 +73,11 @@ async def test_create_guest_message_and_ai_response(ac: AsyncClient):
         "content": "Hello world",
         "chat_id": "1",
         "theme_id": "1",
-        "is_ai_response": False
+        "is_ai_response": False,
     }
 
     ai_response = await ac.post(
-        f"/chats/{chat_id}/guest/message/",
-        json=message_form_data
+        f"/chats/{chat_id}/guest/message/", json=message_form_data
     )
     assert ai_response.status_code == status.HTTP_201_CREATED, ai_response.json()
     assert ai_response.json().get("response") is not None
@@ -120,8 +100,7 @@ async def test_get_all_saved_messages(create_chat, ac: AsyncClient):
 
     assert msg_save.status_code == status.HTTP_200_OK
     response = await ac.get(
-        "/messages/saved/",
-        headers={"Authorization": f"Bearer {token}"}
+        "/messages/saved/", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()) == 1
@@ -133,10 +112,7 @@ async def test_get_saved_messages_by_id(create_chat, ac: AsyncClient):
     msg_save = await save_or_unsave_message(ac, chat_id, 2, True, token)
 
     assert msg_save.status_code == status.HTTP_200_OK
-    response = await ac.get(
-        f"/saved/1/",
-        headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await ac.get(f"/saved/1/", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data.get("id") == 1
@@ -149,8 +125,7 @@ async def test_delete_saved_message(create_chat, ac: AsyncClient):
     msg_save = await save_or_unsave_message(ac, chat_id, 2, True, token)
     assert msg_save.status_code == status.HTTP_200_OK
     response = await ac.delete(
-        "/saved/1/delete/",
-        headers={"Authorization": f"Bearer {token}"}
+        "/saved/1/delete/", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -161,8 +136,7 @@ async def test_delete_all_saved_messages(create_chat, ac: AsyncClient):
     msg_save = await save_or_unsave_message(ac, chat_id, 2, True, token)
     assert msg_save.status_code == status.HTTP_200_OK
     response = await ac.delete(
-        "/saved/delete/",
-        headers={"Authorization": f"Bearer {token}"}
+        "/saved/delete/", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -172,14 +146,10 @@ async def test_still_saved_message_if_chat_deleted(create_chat, ac: AsyncClient)
     await create_message(ac, token, chat_id)
     await save_or_unsave_message(ac, chat_id, 2, True, token)
     chat_response = await ac.delete(
-        "/chats/1/delete/",
-        headers={"Authorization": f"Bearer {token}"}
+        "/chats/1/delete/", headers={"Authorization": f"Bearer {token}"}
     )
     assert chat_response.status_code == status.HTTP_204_NO_CONTENT
-    response = await ac.get(
-        f"/saved/1/",
-        headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await ac.get(f"/saved/1/", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data.get("id") == 1

@@ -9,18 +9,10 @@ from .test_themes import create_theme
 
 @pytest.fixture
 async def create_chat(create_theme, create_user, ac: AsyncClient):
-    form_data = {
-        "username": "user@example.com",
-        "password": "String123"
-    }
-    login = await ac.post(
-        "/user/token/", data=form_data
-    )
+    form_data = {"username": "user@example.com", "password": "String123"}
+    login = await ac.post("/user/token/", data=form_data)
     token = login.json().get("access_token")
-    chat = Chat(
-        theme_id=create_theme,
-        user_id=create_user
-    )
+    chat = Chat(theme_id=create_theme, user_id=create_user)
     db = TestSessionLocal()
     db.add(chat)
     await db.commit()
@@ -39,8 +31,9 @@ async def test_create_guest_chat(create_theme, ac: AsyncClient):
     assert response.status_code == status.HTTP_201_CREATED
 
 
-
-async def test_create_user_chat(create_chat, create_user, create_theme, ac: AsyncClient):
+async def test_create_user_chat(
+        create_chat, create_user, create_theme, ac: AsyncClient
+):
     chat_id, token = create_chat
 
     request_data = {
@@ -51,7 +44,7 @@ async def test_create_user_chat(create_chat, create_user, create_theme, ac: Asyn
     response = await ac.post(
         "/chats/create/",
         json=request_data,
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == status.HTTP_201_CREATED
 
@@ -68,10 +61,7 @@ async def test_get_list_of_chats(create_chat, ac: AsyncClient):
 
 async def test_get_chat_by_id(create_chat, ac: AsyncClient):
     chat_id, token = create_chat
-    response = await ac.get(
-        "/chats/1/",
-        headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await ac.get("/chats/1/", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == status.HTTP_200_OK
     assert response.json().get("user_id") == 1
     assert response.json().get("theme_id") == 1
@@ -80,8 +70,7 @@ async def test_get_chat_by_id(create_chat, ac: AsyncClient):
 async def test_delete_chat(create_chat, ac: AsyncClient):
     chat_id, token = create_chat
     response = await ac.delete(
-        "/chats/1/delete/",
-        headers={"Authorization": f"Bearer {token}"}
+        "/chats/1/delete/", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -89,7 +78,6 @@ async def test_delete_chat(create_chat, ac: AsyncClient):
 async def test_delete_all_chats(create_chat, ac: AsyncClient):
     token = create_chat
     response = await ac.delete(
-        "/chats/delete/",
-        headers={"Authorization": f"Bearer {token}"}
+        "/chats/delete/", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT

@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Path, Request, Response, Query
 from starlette import status
-
 from dependencies import db_dependency, user_dependency
 from .crud import (
     message_create,
@@ -8,7 +7,7 @@ from .crud import (
     get_saved_messages_list,
     delete_specific_saved_message,
     delete_saved_messages,
-    get_specific_saved_message
+    get_specific_saved_message,
 )
 from .schemas import MessageCreate, MessageRead, SavedMessageRead
 from dotenv import load_dotenv
@@ -16,20 +15,20 @@ from .utils import generate_guest_response, set_cookie, get_cookie
 
 load_dotenv()
 
-messages_router = APIRouter(
-    tags=["messages"]
-)
+messages_router = APIRouter(tags=["messages"])
 
 MAX_MESSAGES = 5
 
 
-@messages_router.post("/chats/{chat_id}/guest/message/", status_code=status.HTTP_201_CREATED)
+@messages_router.post(
+    "/chats/{chat_id}/guest/message/", status_code=status.HTTP_201_CREATED
+)
 async def create_message_by_guest(
-        db: db_dependency,
-        request: Request,
-        response: Response,
-        message: MessageCreate,
-        chat_id: int = Path(gt=0),
+    db: db_dependency,
+    request: Request,
+    response: Response,
+    message: MessageCreate,
+    chat_id: int = Path(gt=0),
 ):
     chat_data_cookies = await get_cookie(request, "guest_chat_data")
 
@@ -46,7 +45,7 @@ async def create_message_by_guest(
             "content": message.content,
             "chat_id": chat_id,
             "theme_id": theme_id,
-            "is_ai_response": False
+            "is_ai_response": False,
         }
     )
 
@@ -63,10 +62,10 @@ async def create_message_by_guest(
 
 @messages_router.post("/chats/{chat_id}/message/", status_code=status.HTTP_201_CREATED)
 async def create_message(
-        db: db_dependency,
-        user: user_dependency,
-        message: MessageCreate,
-        chat_id: int = Path(gt=0)
+    db: db_dependency,
+    user: user_dependency,
+    message: MessageCreate,
+    chat_id: int = Path(gt=0),
 ):
     response = await message_create(db, user, message, chat_id)
 
@@ -76,7 +75,7 @@ async def create_message(
 @messages_router.get(
     "/messages/saved/",
     response_model=list[SavedMessageRead],
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
 )
 async def get_all_saved_messages(user: user_dependency, db: db_dependency):
     saved_chats = await get_saved_messages_list(user, db)
@@ -86,14 +85,14 @@ async def get_all_saved_messages(user: user_dependency, db: db_dependency):
 @messages_router.get(
     "/{chat_id}/message/{message_id}/",
     status_code=status.HTTP_200_OK,
-    response_model=list[MessageRead]
+    response_model=list[MessageRead],
 )
 async def save_unsave_specific_message(
-        user: user_dependency,
-        db: db_dependency,
-        chat_id: int = Path(gt=0),
-        message_id: int = Path(gt=0),
-        save: bool = Query(True)
+    user: user_dependency,
+    db: db_dependency,
+    chat_id: int = Path(gt=0),
+    message_id: int = Path(gt=0),
+    save: bool = Query(True),
 ):
     result = await save_or_unsafe_specific_message(user, save, db, chat_id, message_id)
     return result if result else []
@@ -102,28 +101,23 @@ async def save_unsave_specific_message(
 @messages_router.get(
     "/saved/{saved_message_id}/",
     response_model=SavedMessageRead,
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
 )
 async def retrieve_saved_message(
-        user: user_dependency,
-        db: db_dependency,
-        saved_message_id: int = Path(gt=0)
+    user: user_dependency, db: db_dependency, saved_message_id: int = Path(gt=0)
 ):
     return await get_specific_saved_message(user, db, saved_message_id)
 
 
-@messages_router.delete("/saved/{saved_message_id}/delete/", status_code=status.HTTP_204_NO_CONTENT)
+@messages_router.delete(
+    "/saved/{saved_message_id}/delete/", status_code=status.HTTP_204_NO_CONTENT
+)
 async def delete_saved_message(
-        user: user_dependency,
-        db: db_dependency,
-        saved_message_id: int = Path(gt=0)
+    user: user_dependency, db: db_dependency, saved_message_id: int = Path(gt=0)
 ):
     return await delete_specific_saved_message(user, db, saved_message_id)
 
 
 @messages_router.delete("/saved/delete/", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_all_saved_messages(
-        user: user_dependency,
-        db: db_dependency
-):
+async def delete_all_saved_messages(user: user_dependency, db: db_dependency):
     return await delete_saved_messages(user, db)

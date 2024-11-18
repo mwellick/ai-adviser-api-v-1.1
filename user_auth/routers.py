@@ -12,24 +12,23 @@ from .schemas import (
     ResetPassword,
     ForgotPassword
 )
-from .manager import (
-    get_user_token
-)
+from .manager import get_user_token
 from .crud import (
     create_user,
     user_login,
     user_logout,
     password_reset,
     get_existing_user,
-    create_reset_code, user_o2auth_login, google_auth, send_mail
+    create_reset_code,
+    user_o2auth_login,
+    google_auth,
+    send_mail,
 )
 from dependencies import db_dependency, user_dependency
 
 load_dotenv()
 
-router = APIRouter(
-    tags=["auth"]
-)
+router = APIRouter(tags=["auth"])
 
 AUTH_URL = os.environ.get("AUTH_URL")
 CLIENT_ID = os.environ.get("CLIENT_ID")
@@ -44,10 +43,7 @@ MAIL_PORT = os.environ.get("MAIL_HOST")
 
 
 @router.post("/auth/user/", status_code=status.HTTP_201_CREATED)
-async def register_user(
-        db: db_dependency,
-        create_user_request: UserCreate
-):
+async def register_user(db: db_dependency, create_user_request: UserCreate):
     return await create_user(db, create_user_request)
 
 
@@ -67,16 +63,13 @@ async def auth_google(code: str, db: db_dependency):
 
 
 @router.post("/user/token/", status_code=status.HTTP_200_OK)
-async def login_user(
-        form_data: UserLogin,
-        db: db_dependency):
+async def login_user(form_data: UserLogin, db: db_dependency):
     return await user_login(form_data, db)
 
 
 @router.post("/user/login/", status_code=status.HTTP_200_OK)
 async def login_user_o2auth_form(
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-        db: db_dependency
+        form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency
 ):
     return await user_o2auth_login(form_data, db)
 
@@ -104,6 +97,6 @@ async def reset_password(request: ResetPassword, db: db_dependency):
 async def logout_user(
         token: Annotated[str, Depends(get_user_token)],
         user: user_dependency,
-        db: db_dependency
+        db: db_dependency,
 ):
     return await user_logout(token, user, db)

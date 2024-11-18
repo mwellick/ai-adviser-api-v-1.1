@@ -15,7 +15,7 @@ from user_auth.manager import (
     bcrypt_context,
     create_access_token,
     get_user_token,
-    save_blacklist_token
+    save_blacklist_token,
 )
 from user_auth.schemas import UserCreate, ResetPassword, UserLogin
 from database.models import User, ResetPasswordCodes
@@ -41,10 +41,7 @@ MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
 MAIL_PORT = int(os.environ.get("MAIL_PORT"))
 
 
-async def create_user(
-        db: db_dependency,
-        create_user_request: UserCreate
-):
+async def create_user(db: db_dependency, create_user_request: UserCreate):
     await validate_user_create(
         db,
         create_user_request.email,
@@ -53,7 +50,7 @@ async def create_user(
     create_user_model = User(
         email=create_user_request.email,
         hashed_password=bcrypt_context.hash(create_user_request.password),
-        is_active=True
+        is_active=True,
     )
     db.add(create_user_model)
 
@@ -61,20 +58,14 @@ async def create_user(
     return create_user_model
 
 
-async def user_login(
-        form_data: UserLogin,
-        db: db_dependency
-):
+async def user_login(form_data: UserLogin, db: db_dependency):
     user = await validate_user_login(db, form_data)
 
     token = create_access_token(user.email, user.id, timedelta(days=1))
     return {"access_token": token, "type": "bearer"}
 
 
-async def user_o2auth_login(
-        form_data: OAuth2PasswordRequestForm,
-        db: db_dependency
-):
+async def user_o2auth_login(form_data: OAuth2PasswordRequestForm, db: db_dependency):
     user = await validate_user_o2auth_login(db, form_data)
 
     token = create_access_token(user.email, user.id, timedelta(days=1))
@@ -123,16 +114,14 @@ async def send_mail(email: str, code: str):
     except Exception as e:
         raise HTTPException(
             detail=f"An error occurred while sending you a message.{e}",
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
 async def create_reset_code(email: str, code: str, db: db_dependency):
     expiration_time = datetime.now() + timedelta(minutes=10)
     create_code = ResetPasswordCodes(
-        email=email,
-        reset_code=code,
-        expired_in=expiration_time
+        email=email, reset_code=code, expired_in=expiration_time
     )
     db.add(create_code)
     await db.commit()
@@ -141,8 +130,7 @@ async def create_reset_code(email: str, code: str, db: db_dependency):
 
 async def password_reset(code: str, request: ResetPassword, db: db_dependency):
     reset_code = await check_code_expired(code, db)
-    query = select(User).where(
-        User.email == reset_code.email)
+    query = select(User).where(User.email == reset_code.email)
 
     result = await db.execute(query)
 
@@ -150,8 +138,7 @@ async def password_reset(code: str, request: ResetPassword, db: db_dependency):
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     user.hashed_password = bcrypt_context.hash(request.new_password)
@@ -164,7 +151,7 @@ async def password_reset(code: str, request: ResetPassword, db: db_dependency):
 async def user_logout(
         token: Annotated[str, Depends(get_user_token)],
         user: user_dependency,
-        db: db_dependency
+        db: db_dependency,
 ):
     await save_blacklist_token(db, user, token)
     return None
@@ -183,7 +170,7 @@ async def google_auth(code: str, db: db_dependency):
     access_token = response.json().get("access_token")
     user_info_response = requests.get(
         "https://www.googleapis.com/oauth2/v1/userinfo",
-        headers={"Authorization": f"Bearer {access_token}"}
+        headers={"Authorization": f"Bearer {access_token}"},
     )
     user_info = user_info_response.json()
     email = user_info.get("email")
@@ -194,16 +181,14 @@ async def google_auth(code: str, db: db_dependency):
     user = result.scalars().first()
 
     if not user:
-        user_create = User(
-            email=email,
-            hashed_password=None
-
-        )
+        user_create = User(email=email, hashed_password=None)
         db.add(user_create)
         await db.commit()
         await db.refresh(user_create)
 
-        token = create_access_token(user_create.email, user_create.id, timedelta(days=1))
+        token = create_access_token(
+            user_create.email, user_create.id, timedelta(days=1)
+        )
         return {"access_token": token, "type": "bearer"}
 
     token = create_access_token(user.email, user.id, timedelta(days=1))

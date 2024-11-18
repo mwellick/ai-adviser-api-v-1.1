@@ -1,9 +1,4 @@
-from pydantic import (
-    BaseModel,
-    EmailStr,
-    Field,
-    field_validator
-)
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserCreate(BaseModel):
@@ -12,7 +7,9 @@ class UserCreate(BaseModel):
 
     @field_validator("email")
     def validate_email_format(cls, value: str) -> str:
-        allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.@_-"
+        allowed_chars = (
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.@_-"
+        )
 
         if not all(char in allowed_chars for char in value):
             raise ValueError("Email must be valid")

@@ -43,7 +43,7 @@ class ChatRead(BaseModel):
             created_at=message.created_at,
             theme_id=message.theme_id,
             user_id=message.user_id,
-            messages=[first_message] if first_message else []
+            messages=[first_message] if first_message else [],
         )
 
 

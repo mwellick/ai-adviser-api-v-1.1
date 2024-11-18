@@ -5,7 +5,7 @@ from .schemas import ChatCreate, ChatRead, GuestChatCreate
 from .constraints import (
     validate_create_chat_with_available_theme,
     check_chat_history,
-    check_existing_chat
+    check_existing_chat,
 )
 
 
@@ -13,20 +13,14 @@ async def guest_chat_create(db: db_dependency, chat: GuestChatCreate):
     await validate_create_chat_with_available_theme(db, chat)
 
     if chat.user_id is None:
-        create_chat = Chat(
-            theme_id=chat.theme_id,
-            user_id=None
-        )
+        create_chat = Chat(theme_id=chat.theme_id, user_id=None)
         return create_chat
 
 
 async def chat_create(db: db_dependency, user: user_dependency, chat: ChatCreate):
     await validate_create_chat_with_available_theme(db, chat)
 
-    create_chat = Chat(
-        theme_id=chat.theme_id,
-        user_id=user.get("id")
-    )
+    create_chat = Chat(theme_id=chat.theme_id, user_id=user.get("id"))
     db.add(create_chat)
     await db.commit()
     return create_chat
@@ -45,8 +39,7 @@ async def get_chat_by_id(user: user_dependency, db: db_dependency, chat_id: int)
 
 
 async def delete_all_chat_history(user: user_dependency, db: db_dependency):
-    query = select(Chat).where(
-        Chat.user_id == user.get("id"))
+    query = select(Chat).where(Chat.user_id == user.get("id"))
     result = await db.execute(query)
     delete_all = result.scalars().all()
 
@@ -64,16 +57,10 @@ async def delete_all_chat_history(user: user_dependency, db: db_dependency):
     return delete_all
 
 
-async def delete_specific_chat(
-        user: user_dependency,
-        db: db_dependency,
-        chat_id: int
-):
+async def delete_specific_chat(user: user_dependency, db: db_dependency, chat_id: int):
     await check_existing_chat(user, db, chat_id)
 
-    query = select(Chat).where(
-        Chat.user_id == user.get("id")
-    ).where(Chat.id == chat_id)
+    query = select(Chat).where(Chat.user_id == user.get("id")).where(Chat.id == chat_id)
 
     result = await db.execute(query)
 

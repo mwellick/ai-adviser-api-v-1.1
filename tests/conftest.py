@@ -22,7 +22,7 @@ TestSessionLocal = sessionmaker(
     autoflush=False,
     expire_on_commit=False,
     class_=AsyncSession,
-    bind=engine_test
+    bind=engine_test,
 )
 
 client = TestClient(app)
@@ -44,7 +44,7 @@ async def override_get_current_user():
         "id": 1,
         "email": "user@example.com",
         "username": "testuser123",
-        "is_active": True
+        "is_active": True,
     }
 
 
