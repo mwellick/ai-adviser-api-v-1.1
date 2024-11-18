@@ -184,7 +184,8 @@ async def google_auth(code: str, db: db_dependency):
         "code": code,
         "client_id": CLIENT_ID,
         "client_secret": CLIENT_SECRET,
-        "redirect_uri": REDIRECT_URL,
+        "redirect_uri": REDIRECT_URL if os.environ.get(
+            "FAST_API_ENV") == "production" else "http://127.0.0.1:8000/auth/google",
         "grant_type": "authorization_code",
     }
     response = requests.post(token_url, data=data)
