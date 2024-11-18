@@ -51,9 +51,9 @@ async def register_user(db: db_dependency, create_user_request: UserCreate):
 async def google_login():
     return {
         "url": f"https://accounts.google.com/o/oauth2/auth"
-               f"?response_type=code&client_id={CLIENT_ID}"
-               f"&redirect_uri={REDIRECT_URL}"
-               f"&scope=openid%20profile%20email&access_type=offline"
+        f"?response_type=code&client_id={CLIENT_ID}"
+        f"&redirect_uri={REDIRECT_URL}"
+        f"&scope=openid%20profile%20email&access_type=offline"
     }
 
 
@@ -69,7 +69,7 @@ async def login_user(form_data: UserLogin, db: db_dependency):
 
 @router.post("/user/login/", status_code=status.HTTP_200_OK)
 async def login_user_o2auth_form(
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency
 ):
     return await user_o2auth_login(form_data, db)
 
@@ -95,8 +95,8 @@ async def reset_password(request: ResetPassword, db: db_dependency):
 
 @router.get("/user/logout/", status_code=status.HTTP_204_NO_CONTENT)
 async def logout_user(
-        token: Annotated[str, Depends(get_user_token)],
-        user: user_dependency,
-        db: db_dependency,
+    token: Annotated[str, Depends(get_user_token)],
+    user: user_dependency,
+    db: db_dependency,
 ):
     return await user_logout(token, user, db)

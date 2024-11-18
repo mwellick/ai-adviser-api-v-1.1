@@ -29,6 +29,8 @@ from .constraints import (
 
 load_dotenv()
 
+DEV_ENV = os.environ.get("FAST_API_ENV")
+
 AUTH_URL = os.environ.get("AUTH_URL")
 CLIENT_ID = os.environ.get("CLIENT_ID")
 TOKEN_URL = os.environ.get("TOKEN_URL")
@@ -39,6 +41,9 @@ MAIL_HOST = os.environ.get("MAIL_HOST")
 MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
 MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
 MAIL_PORT = int(os.environ.get("MAIL_PORT"))
+
+DEV_URL = "http://127.0.0.1:8000"
+PROD_URL = "https://673a1462c6cb370008261a64--adviser-elli.netlify.app"
 
 
 async def create_user(db: db_dependency, create_user_request: UserCreate):
@@ -84,24 +89,40 @@ async def send_mail(email: str, code: str):
     message["To"] = email
     message["Subject"] = "Password reset code"
 
-    body = f"""
-    <html>
-        <body>
-            <p>Hello,</p>
-            <p>You requested a password reset. Use the following code to reset your password:</p>
-            <h3 style="color: black; font-weight: bold;">{code}</h3>  
-            <p>This code will expire in 10 minutes. Please do not share this code with anyone.</p>
-            <p>You can reset your password by visiting the following link:</p>
-            <a href="http://127.0.0.1:8000/docs#/auth/reset_password_reset_password__patch"
-               style="color: #3498db; text-decoration: none; font-weight: bold;">
-               http://127.0.0.1:8000/docs#/auth/reset_password_reset_password__patch
-            </a>
-            <br><br>
-            <p>Best regards,
-            <br>Elli.Ai Team</p>
-        </body>
-    </html>
-    """
+    if os.environ.get("FAST_API_ENV") == "develop":
+        body = f"""
+        <html>
+            <body>
+                <p>Hello,</p>
+                <p>You requested a password reset. Use the following code to reset your password:</p>
+                <h3 style="color: black; font-weight: bold;">{code}</h3>  
+                <p>This code will expire in 10 minutes. Please do not share this code with anyone.</p>
+                <p>You can reset your password by visiting the following link:</p>
+                <a href="http://127.0.0.1:8000/#/auth/reset_password_reset_password__patch"
+                    style="color: #3498db; text-decoration: none; font-weight: bold;">
+                    http://127.0.0.1:8000/#/auth/reset_password_reset_password__patch
+                </a>
+                <br><br>
+                <p>Best regards,
+                <br>Elli.Ai Team</p>
+            </body>
+        </html>
+        """
+    else:
+        body = f"""
+        <html>
+            <body>
+                <p>Hello,</p>
+                <p>You requested a password reset. Use the following code to reset your password:</p>
+                <h3 style="color: black; font-weight: bold;">{code}</h3>  
+                <p>This code will expire in 10 minutes. Please do not share this code with anyone.</p>
+                <br><br>
+                <p>Best regards,
+                <br>Elli.Ai Team</p>
+            </body>
+        </html>
+        """
+
     message.set_content(body, subtype="html")
 
     try:
