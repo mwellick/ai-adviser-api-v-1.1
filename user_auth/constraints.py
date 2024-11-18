@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select, or_, desc
 from starlette import status
@@ -7,6 +7,8 @@ from dependencies import db_dependency
 from database.models import User, ResetPasswordCodes
 from user_auth.manager import authenticate_user
 from .schemas import UserLogin
+
+
 
 
 async def validate_user_create(db: db_dependency, email: str):
@@ -36,8 +38,8 @@ async def validate_user_login(db: db_dependency, form_data: UserLogin):
 
 
 async def validate_user_o2auth_login(
-    db: db_dependency,
-    form_data: OAuth2PasswordRequestForm,
+        db: db_dependency,
+        form_data: OAuth2PasswordRequestForm,
 ):
     user = await authenticate_user(form_data.username, form_data.password, db)
 
@@ -71,7 +73,11 @@ async def check_code_expired(code: str, db: db_dependency):
 
     result = await db.execute(query)
     reset_code = result.scalar_one_or_none()
-    if not reset_code or reset_code.expired_in < datetime.now():
+
+    if reset_code.expired_in.tzinfo is None:
+        reset_code.expired_in = reset_code.expired_in.replace(tzinfo=timezone.utc)
+
+    if reset_code.expired_in < datetime.now(timezone.utc):
         reset_code.status = False
         await db.commit()
         raise HTTPException(
