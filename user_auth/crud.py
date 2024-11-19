@@ -29,8 +29,6 @@ from .constraints import (
 
 load_dotenv()
 
-DEV_ENV = os.environ.get("FAST_API_ENV")
-
 AUTH_URL = os.environ.get("AUTH_URL")
 CLIENT_ID = os.environ.get("CLIENT_ID")
 TOKEN_URL = os.environ.get("TOKEN_URL")
