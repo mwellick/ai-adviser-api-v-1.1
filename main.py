@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="AI Adviser", docs_url="/")
 
-origins = ["https://673cbdbd8bbc9404585194d8--adviser-elli.netlify.app"]
+origins = ["https://674446893f2e710008d44b80--adviser-elli.netlify.app"]
 
 app.add_middleware(
     CORSMiddleware,

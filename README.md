@@ -79,7 +79,7 @@ You can also try the production version of the service, you can access it here:
 
 Additionally, you can try the frontend application here, connected to this API:
 
-[Frontend App](https://adviser-elli.netlify.app)
+[Frontend App](https://674446893f2e710008d44b80--adviser-elli.netlify.app)
 
 
 ### DB Structure
