@@ -16,7 +16,7 @@ from .utils import generate_response
 
 
 async def message_create(
-    db: db_dependency, user: user_dependency, message: MessageCreate, chat_id: int
+        db: db_dependency, user: user_dependency, message: MessageCreate, chat_id: int
 ):
     await check_existing_chat(user, db, chat_id)
     message = Message(content=message.content, chat_id=chat_id)
@@ -39,7 +39,7 @@ async def get_message(db: db_dependency, chat_id: int, message_id: int):
 
 
 async def get_previous_message(
-    db: db_dependency, message_created_at: datetime, chat_id: int
+        db: db_dependency, message_created_at: datetime, chat_id: int
 ):
     previous_message_query = (
         select(Message)
@@ -58,7 +58,7 @@ async def get_previous_message(
 
 
 async def get_existing_saved_message(
-    db: db_dependency, user: user_dependency, user_request: str, ai_response: str
+        db: db_dependency, user: user_dependency, user_request: str, ai_response: str
 ):
     saved_message_query = select(SavedMessages).where(
         and_(
@@ -72,14 +72,14 @@ async def get_existing_saved_message(
 
 
 async def save_of_delete_from_db(
-    db: db_dependency,
-    user: user_dependency,
-    user_request: str,
-    ai_response: str,
-    chat_id: int,
-    user_message_id: int,
-    ai_response_id: int,
-    save: bool,
+        db: db_dependency,
+        user: user_dependency,
+        user_request: str,
+        ai_response: str,
+        chat_id: int,
+        user_message_id: int,
+        ai_response_id: int,
+        save: bool,
 ):
     if save is True:
         save_to_db = SavedMessages(
@@ -104,7 +104,7 @@ async def save_of_delete_from_db(
 
 
 async def save_or_unsafe_specific_message(
-    user: user_dependency, save: bool, db: db_dependency, chat_id: int, message_id: int
+        user: user_dependency, save: bool, db: db_dependency, chat_id: int, message_id: int
 ):
     await check_existing_chat(user, db, chat_id)
     await check_existing_message(user, db, message_id)
@@ -172,19 +172,34 @@ async def get_saved_messages_list(user: user_dependency, db: db_dependency):
 
 
 async def get_specific_saved_message(
-    user: user_dependency, db: db_dependency, saved_message_id: int
+        user: user_dependency, db: db_dependency, saved_message_id: int
 ):
     saved_message = await check_existing_saved_message(user, db, saved_message_id)
     return saved_message
 
 
 async def delete_specific_saved_message(
-    user: user_dependency, db: db_dependency, saved_message_id: int
+        user: user_dependency, db: db_dependency, saved_message_id: int
 ):
     saved_message_to_delete = await check_existing_saved_message(
         user, db, saved_message_id
     )
+    user_message = await get_message(
+        db,
+        saved_message_to_delete.chat_id,
+        saved_message_to_delete.user_message_id
+    )
+    ai_message = await get_message(
+        db,
+        saved_message_to_delete.chat_id,
+        saved_message_to_delete.ai_response_id
+    )
+
+    user_message.is_saved = False
+    ai_message.is_saved = False
+
     delete = await db.delete(saved_message_to_delete)
+
     await db.commit()
     return delete
 
@@ -193,6 +208,22 @@ async def delete_saved_messages(user: user_dependency, db: db_dependency):
     delete_all = await check_db_saved_messages(user, db)
 
     for saved_message in delete_all:
+        user_message = await get_message(
+            db,
+            saved_message.chat_id,
+            saved_message.user_message_id
+        )
+        if user_message:
+            user_message.is_saved = False
+
+        ai_message = await get_message(
+            db,
+            saved_message.chat_id,
+            saved_message.ai_response_id
+        )
+        if ai_message:
+            ai_message.is_saved = False
+
         delete_all = await db.delete(saved_message)
 
     await db.commit()
