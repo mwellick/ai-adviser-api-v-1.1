@@ -69,11 +69,6 @@ uvicorn app.main:app --reload
 
 * Swagger: Visit http://127.0.0.1:8000 for an interactive API documentation interface.
 
-### Production URL
-
-You can also try the production version of the service, you can access it here:
-
-[Production API](https://interior-arluene-mwellick-4212a5bc.koyeb.app)
 
 ### Frontend Application
 
